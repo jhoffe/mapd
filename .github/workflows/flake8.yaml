@@ -8,7 +8,7 @@ jobs:
   flake8:
     strategy:
       matrix:
-        python-version: [ "3.8.1", "3.9", "3.10" ]
+        python-version: [ "3.8", "3.9", "3.10" ]
         os: [ ubuntu-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
