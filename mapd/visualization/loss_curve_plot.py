@@ -103,38 +103,4 @@ def loss_curve_plot(
     else:
         plt.savefig(os.path.join(output_path, name, f"{name}_loss_curve.png"))
 
-
-def main(name, probe_suite_path, loss_dataset_path, output_path, rio=False):
-    loss_curve_plot(
-        name=name,
-        probe_suite_path=probe_suite_path,
-        loss_dataset_path=loss_dataset_path,
-        output_path=output_path,
-        rio=rio,
-    )
-
-
-@click.command()
-@click.option("--name", type=str, required=True)
-@click.argument(
-    "probe_suite_path", type=click.Path(exists=True, dir_okay=False, file_okay=True)
-)
-@click.argument(
-    "loss_dataset_path", type=click.Path(exists=True, dir_okay=True, file_okay=False)
-)
-@click.argument(
-    "output_filepath", type=click.Path(exists=True, dir_okay=True, file_okay=False)
-)
-@click.option("--rio", is_flag=True, default=False)
-def main_click(name, probe_suite_path, loss_dataset_path, output_filepath, rio):
-    main(
-        name=name,
-        probe_suite_path=probe_suite_path,
-        loss_dataset_path=loss_dataset_path,
-        output_path=output_filepath,
-        rio=rio,
-    )
-
-
-if __name__ == "__main__":
-    main_click()
+    plt.close()

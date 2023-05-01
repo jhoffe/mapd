@@ -1,7 +1,6 @@
 import os
 import random
 
-import click
 import matplotlib.pyplot as plt
 
 from src.visualization.utils.plot_utils import (
@@ -119,27 +118,4 @@ def consistently_learned_plot(
 
     plt.savefig(os.path.join(figure_path, f"{name}_consistently_learned_accuracy.png"))
 
-
-def main(name, probe_suite_path, loss_dataset_path, output_filepath):
-    consistently_learned_plot(
-        name, probe_suite_path, loss_dataset_path, output_filepath
-    )
-
-
-@click.command()
-@click.option("--name", type=str, required=True)
-@click.argument(
-    "probe_suite_path", type=click.Path(exists=True, dir_okay=False, file_okay=True)
-)
-@click.argument(
-    "loss_dataset_path", type=click.Path(exists=True, dir_okay=True, file_okay=False)
-)
-@click.argument(
-    "output_filepath", type=click.Path(exists=True, dir_okay=True, file_okay=False)
-)
-def main_click(name, probe_suite_path, loss_dataset_path, output_filepath):
-    main(name, probe_suite_path, loss_dataset_path, output_filepath)
-
-
-if __name__ == "__main__":
-    main_click()
+    plt.close()
