@@ -6,7 +6,7 @@ import click
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.visualization.utils.plot_utils import (
+from mapd.visualization.utils.plot_utils import (
     load_loss_dataset,
     load_probe_suite,
     plot_styles,

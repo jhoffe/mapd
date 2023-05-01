@@ -15,7 +15,7 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier, XGBRFClassifier
 
-from src.data.loss_dataset import LossDataset
+from mapd.data.loss_dataset import LossDataset
 
 
 def cv_metadata_model(classifier: BaseEstimator, X: np.array, y: np.array) -> np.array:

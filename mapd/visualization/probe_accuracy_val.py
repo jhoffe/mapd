@@ -4,7 +4,7 @@ import random
 import click
 import matplotlib.pyplot as plt
 
-from src.visualization.utils.plot_utils import load_loss_dataset, load_probe_suite
+from mapd.visualization.utils.plot_utils import load_loss_dataset, load_probe_suite
 
 
 def plot_probe_accuracies(

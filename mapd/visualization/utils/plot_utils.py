@@ -3,7 +3,7 @@ import sys
 
 import pandas as pd
 import torch
-from src.data.loss_dataset import LossDataset
+from mapd.data.loss_dataset import LossDataset
 
 
 def get_loss_dataset(loss_dataset_path: str) -> pd.DataFrame:

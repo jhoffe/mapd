@@ -5,7 +5,7 @@ import pyarrow.parquet as pq
 from sklearn.base import BaseEstimator, is_classifier
 from xgboost import XGBClassifier
 
-from src.data.loss_dataset import LossDataset
+from mapd.data.loss_dataset import LossDataset
 
 
 def train_metadata_model(
