@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 
 
 class MAPDModule(LightningModule, metaclass=ABCMeta):
-    mapd_current_indices_: List[int]
+    mapd_current_indices_: Optional[torch.Tensor]
     mapd_losses_: Optional[Tensor]
     mapd_indices_: Optional[Tensor]
 
@@ -32,6 +32,8 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         loss = self.batch_loss(logits, y)
         current_indices = self.mapd_current_indices_
 
+        assert self.mapd_losses_ is not None
+
         if self.mapd_losses_ is None:
             self.mapd_losses_ = loss
             self.mapd_indices_ = current_indices
@@ -41,10 +43,6 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
     def on_train_epoch_end(self) -> None:
         if self.mapd_losses_ is not None:
-            print(self.mapd_losses_.mean())
-            print(self.mapd_indices_.shape)
-            print(self.mapd_losses_.shape)
-
             self.mapd_losses_ = None
             self.mapd_indices_ = None
 
