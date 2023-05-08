@@ -89,3 +89,6 @@ target/
 #outputs
 
 .pytest_cache/
+/lightning_logs/
+/probes/
+/proxies/
