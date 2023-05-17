@@ -37,7 +37,7 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         self.probes_dataset = None
 
         if is_overridden("on_before_batch_transfer", self, MAPDModule):
-            raise ValueError("on_before_batch_transfer is a reserved method name")
+            raise ValueError("on_before_batch_transfer is a reserved method name. Please rename your method.")
 
     @classmethod
     @abstractmethod
@@ -51,7 +51,6 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
     def batch_proxy_metric(self, logits: Any, y: Any) -> Tensor:
         softmax = torch.softmax(logits, dim=1)
-
         # softmax confidence on correct class
         return softmax[torch.arange(softmax.shape[0]), y]
 
@@ -66,13 +65,13 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
     def mapd_log(self, logits: Any, y: Any) -> "MAPDModule":
         if not self.trainer.sanity_checking:
-            self.mapd_indices_.append(self.mapd_current_indices_)
-
             if self.as_proxies_:
+                self.mapd_indices_.append(self.mapd_current_indices_)
                 self._mapd_log_proxy(logits, y)
                 return self
 
-            if (self.training or (not self.training and self.is_val_probes_)):
+            if self.training or (not self.training and self.is_val_probes_):
+                self.mapd_indices_.append(self.mapd_current_indices_)
                 self._mapd_log_probes(logits, y)
 
         return self
@@ -135,7 +134,8 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         )
 
         ds.write_dataset(table, "probes",
-                         partitioning=ds.partitioning(pa.schema([("epoch", pa.int64()), ("stage", pa.string())]), flavor="filename"),
+                         partitioning=ds.partitioning(pa.schema([("epoch", pa.int64()), ("stage", pa.string())]),
+                                                      flavor="filename"),
                          existing_data_behavior="overwrite_or_ignore", format="parquet")
 
     def on_train_epoch_end(self) -> None:
@@ -147,8 +147,7 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
         self._reset_mapd_attrs()
 
-
-    def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int) -> None:
+    def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         if self.as_proxies_:
             return
 
