@@ -95,3 +95,6 @@ probes_data/
 /probes/
 /proxies/
 /data-emnist
+/mapd_probes
+
+*.pkl
