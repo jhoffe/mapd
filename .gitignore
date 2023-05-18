@@ -91,3 +91,7 @@ target/
 .pytest_cache/
 
 probes_data/
+/lightning_logs/
+/probes/
+/proxies/
+/data-emnist

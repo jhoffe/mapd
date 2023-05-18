@@ -1,4 +1,0 @@
-lr: 0.05
-max_epochs: 10
-momentum: 0.9
-weight_decay: 0.0005
