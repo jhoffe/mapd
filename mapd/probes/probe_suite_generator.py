@@ -57,6 +57,7 @@ class ProbeSuiteGenerator(Dataset):
         self.generate_typical()
         self.generate_random_outputs()
         self.generate_random_inputs_outputs()
+        self.generate_train()
         if self.corruption_module is not None:
             self.generate_corrupted()
 
@@ -78,6 +79,10 @@ class ProbeSuiteGenerator(Dataset):
             self.suites[idx] = ((sample, target), idx)
 
         return self
+
+    def generate_train(self):
+        subset = self.get_subset()
+        self.add_suite("train", subset)
 
     def generate_typical(self):
         subset = self.get_subset(indices=self.sorted_indices[: self.num_probes])

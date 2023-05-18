@@ -92,3 +92,4 @@ target/
 /lightning_logs/
 /probes/
 /proxies/
+/data-emnist
