@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Callable, Any, Optional
 
 import numpy as np
 
@@ -6,8 +6,9 @@ from mapd.probes.utils.idx_dataset import IDXDataset
 import matplotlib.pyplot as plt
 
 
-def make_surface_predictions(predictions: Dict[int, Tuple[str, float]], dataset: IDXDataset,
-                             probe_suite: str = "typical", labels: Dict[int, str] = None, ordered: bool = False):
+def display_surface_predictions(predictions: Dict[int, Tuple[str, float]], dataset: IDXDataset,
+                                probe_suite: str = "typical", labels: Dict[int, str] = None, ordered: bool = False,
+                                display_sample_fn: Optional[Callable[[plt.Axes, Any], None]] = None) -> plt.Figure:
     """
     Helper function to generate a surface plot of the probe suite predictions.
 
@@ -17,6 +18,11 @@ def make_surface_predictions(predictions: Dict[int, Tuple[str, float]], dataset:
         probe_suite(str): The probe suite to generate the surface plot for.
         labels(Dict[int, str]): A dictionary of labels for the dataset.
         ordered(bool): Whether to order the surface plot by prediction probability.
+        display_sample_fn(Optional[Callable[[plt.Axes, Any], None]]): A function to display the sample. If None,
+        the sample is displayed as a grayscale image.
+
+    Returns:
+        plt.Figure: The figure containing the surface plot.
     """
 
     all_sample_indices_for_probe = [k for k, (ps, _) in predictions.items() if ps == probe_suite]
@@ -30,7 +36,6 @@ def make_surface_predictions(predictions: Dict[int, Tuple[str, float]], dataset:
     else:
         sampled_indices = np.random.choice(all_sample_indices_for_probe, N, replace=False)
 
-
     fig, axs = plt.subplots(N_ROWS, N_COLUMNS, figsize=(20, 20))
     fig.suptitle(f"Probe Suite: {probe_suite}", fontsize=20)
     fig.tight_layout(pad=3.0)
@@ -39,6 +44,10 @@ def make_surface_predictions(predictions: Dict[int, Tuple[str, float]], dataset:
         (sample, label), _ = dataset[idx]
 
         label_str = labels[label] if labels is not None else str(label)
+
+        if display_sample_fn is not None:
+            display_sample_fn(ax, sample)
+            continue
 
         ax.set_title(f"Label: {label_str} ({idx})")
         ax.imshow(sample.T.squeeze(), cmap="gray")

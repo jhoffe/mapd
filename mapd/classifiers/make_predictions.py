@@ -18,7 +18,7 @@ from xgboost import XGBClassifier, XGBRFClassifier
 from joblib import Parallel, delayed
 from tqdm.auto import tqdm
 
-from mapd.probes.probe_suite_generator import ProbeSuiteGenerator
+from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 
 
 def _create_sklearn_predict_matrix(dataset_path: Union[str, os.PathLike],

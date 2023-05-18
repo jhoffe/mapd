@@ -1,5 +1,5 @@
 import random
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Any
 
 import numpy as np
 import torch
@@ -8,8 +8,11 @@ from torchvision.transforms import transforms
 
 from mapd.proxies.proxy_calculator import ProxyCalculator
 
+def _get(x: Any) -> Any:
+    return x[1]
 
-class ProbeSuiteGenerator(Dataset):
+
+class ProbeSuiteDataset(Dataset):
     dataset: Dataset
     remaining_indices: list = []
     used_indices: list = []
@@ -30,6 +33,7 @@ class ProbeSuiteGenerator(Dataset):
         num_probes: int = 500,
         corruption_module: Optional[Union[torch.nn.Module, transforms.Compose]] = None,
         only_probes: bool = False,
+        add_train_suite: bool = False,
     ):
         self.dataset = dataset
         self.dataset_len = len(self.dataset)
@@ -44,8 +48,9 @@ class ProbeSuiteGenerator(Dataset):
         self.proxy_calculator = proxy_calculator
         self.scores = proxy_calculator.calculate_proxy_scores()
         self.sorted_indices = list(
-            dict(sorted(self.scores.items(), key=lambda x: x[1], reverse=True)).keys()
+            dict(sorted(self.scores.items(), key=_get, reverse=True)).keys()
         )
+        self.add_train_suite = add_train_suite
 
         assert len(self.scores) == self.dataset_len
 
@@ -57,7 +62,8 @@ class ProbeSuiteGenerator(Dataset):
         self.generate_typical()
         self.generate_random_outputs()
         self.generate_random_inputs_outputs()
-        self.generate_train()
+        if self.add_train_suite:
+            self.generate_train()
         if self.corruption_module is not None:
             self.generate_corrupted()
 
@@ -73,7 +79,7 @@ class ProbeSuiteGenerator(Dataset):
 
     def add_suite(
         self, name: str, suite: List[Tuple[torch.Tensor, int, int]]
-    ) -> "ProbeSuiteGenerator":
+    ) -> "ProbeSuiteDataset":
         for (sample, target), idx in suite:
             self.index_to_suite[idx] = name
             self.suites[idx] = ((sample, target), idx)

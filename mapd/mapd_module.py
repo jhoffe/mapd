@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 
 import torch
 from lightning import LightningModule
-from typing import Any, List
+from typing import Any, List, Dict
 from torch import Tensor
 import pyarrow.dataset as ds
 import pyarrow as pa
@@ -17,6 +17,8 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
     mapd_indices_: List[Tensor] = []
 
     mapd_losses_: List[Tensor] = []
+    mapd_y_hats_: List[Tensor] = []
+    mapd_ys_: List[Tensor] = []
     mapd_stages_: List[str] = []
     mapd_proxy_metrics_: List[Tensor] = []
 
@@ -30,6 +32,8 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         self.mapd_stages_ = []
         self.mapd_proxy_metrics_ = []
         self.mapd_indices_ = []
+        self.mapd_y_hats_ = []
+        self.mapd_ys_ = []
         self.as_proxies_ = False
         self.as_probes_ = False
         self.is_val_probes_ = False
@@ -41,8 +45,16 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def batch_loss(self, logits: Any, y: Any) -> Tensor:
+    def batch_loss(cls, logits: Any, y: Any) -> Tensor:
         raise NotImplemented("batch_loss method not implemented")
+
+    @classmethod
+    @abstractmethod
+    def mapd_settings(cls) -> Dict[str, Any]:
+        raise NotImplemented("mapd_settings method not implemented")
+
+    def _get_setting(self, setting_name: str, default: Any = None) -> Any:
+        return self.mapd_settings().get(setting_name, default)
 
     def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
         batch, indices = batch
@@ -58,9 +70,11 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         proxy_metrics = self.batch_proxy_metric(logits, y).detach()
         self.mapd_proxy_metrics_.append(proxy_metrics)
 
-    def _mapd_log_probes(self, logits: Any, y: Any):
+    def _mapd_log_probes(self, logits: Any, y: Any) -> None:
         batch_losses = self.batch_loss(logits, y).detach()
         self.mapd_losses_.append(batch_losses)
+        self.mapd_y_hats_.append(logits.argmax(dim=1).detach())
+        self.mapd_ys_.append(y.detach())
         self.mapd_stages_ += ["train" if self.training else "val"] * batch_losses.shape[0]
 
     def mapd_log(self, logits: Any, y: Any) -> "MAPDModule":
@@ -82,6 +96,8 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         self.mapd_proxy_metrics_ = []
         self.mapd_indices_ = []
         self.mapd_stages_ = []
+        self.mapd_y_hats_ = []
+        self.mapd_ys_ = []
 
         return self
 
@@ -100,7 +116,7 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
         return self
 
-    def _write_proxies(self):
+    def _write_proxies(self) -> None:
         sample_indices = torch.cat(self.mapd_indices_).cpu().numpy()
         sample_proxy_metrics = torch.cat(self.mapd_proxy_metrics_).cpu().numpy()
         epochs = np.full(sample_indices.shape, self.current_epoch)
@@ -114,26 +130,34 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
             names=["sample_index", "proxy_metric", "epoch"],
         )
 
-        ds.write_dataset(table, "proxies",
+        proxies_output_path = self._get_setting("proxies_output_path", "mapd_proxies")
+
+        ds.write_dataset(table, proxies_output_path,
                          partitioning=ds.partitioning(pa.schema([("epoch", pa.int64())]), flavor="filename"),
                          existing_data_behavior="overwrite_or_ignore", format="parquet")
 
-    def _write_probes(self):
+    def _write_probes(self) -> None:
         sample_indices = torch.cat(self.mapd_indices_).cpu().numpy()
         sample_losses = torch.cat(self.mapd_losses_).cpu().numpy()
+        sample_y_hats = torch.cat(self.mapd_y_hats_).cpu().numpy()
+        sample_ys = torch.cat(self.mapd_ys_).cpu().numpy()
         epochs = np.full(sample_indices.shape, self.current_epoch)
 
         table = pa.table(
             [
                 pa.array(sample_indices),
                 pa.array(sample_losses),
+                pa.array(sample_y_hats),
+                pa.array(sample_ys),
                 pa.array(epochs),
                 pa.array(self.mapd_stages_)
             ],
-            names=["sample_index", "loss", "epoch", "stage"],
+            names=["sample_index", "loss", "y_hat", "y", "epoch", "stage"],
         )
 
-        ds.write_dataset(table, "probes",
+        probes_output_path = self._get_setting("probes_output_path", "mapd_probes")
+
+        ds.write_dataset(table, probes_output_path,
                          partitioning=ds.partitioning(pa.schema([("epoch", pa.int64()), ("stage", pa.string())]),
                                                       flavor="filename"),
                          existing_data_behavior="overwrite_or_ignore", format="parquet")

@@ -95,3 +95,5 @@ probes_data/
 /probes/
 /proxies/
 /data-emnist
+/mapd_probes
+/mapd_proxies

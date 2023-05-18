@@ -18,10 +18,10 @@ from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier, XGBRFClassifier
 from sklearn.pipeline import make_pipeline
 
-from mapd.probes.probe_suite_generator import ProbeSuiteGenerator
+from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 
 
-def _create_sklearn_train_matrix(dataset_path: Union[str, os.PathLike], probe_suite_ds: ProbeSuiteGenerator,
+def _create_sklearn_train_matrix(dataset_path: Union[str, os.PathLike], probe_suite_ds: ProbeSuiteDataset,
                                  epoch_range: Optional[Tuple[int, int]] = None):
     dataset = ds.dataset(dataset_path,
                          partitioning=ds.partitioning(pa.schema([("epoch", pa.int64()), ("stage", pa.string())]),
@@ -65,7 +65,7 @@ CLASSIFIERS = {
 }
 
 
-def make_mapd_classifier(dataset_path: Union[str, os.PathLike], probe_suite_ds: ProbeSuiteGenerator,
+def make_mapd_classifier(dataset_path: Union[str, os.PathLike], probe_suite_ds: ProbeSuiteDataset,
                          clf: Union[str, BaseEstimator] = "xgboost", clf_kwargs: Optional[Dict[str, Any]] = None,
                          epoch_range: Optional[Tuple[int, int]] = None):
     if isinstance(clf, str):
