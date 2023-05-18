@@ -1,14 +1,10 @@
-import os
 import random
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import pyarrow as pa
 import pyarrow.dataset as ds
-import pyarrow.parquet as pq
-import seaborn as sns
 from tqdm import tqdm
 
 from mapd.probes.probe_suite_generator import ProbeSuiteDataset
@@ -49,6 +45,18 @@ class MAPDVisualizationTool:
         save_path: Optional[str] = None,
         plot_config: Optional[Dict] = None,
     ) -> None:
+        """
+        Plot probe accuracy for each suite over epochs.
+
+        Args:
+            show (bool, optional): Whether to show the plot. Defaults to True.
+            save (Optional[bool], optional): Whether to save the plot. Defaults to None.
+            save_path (Optional[str], optional): Path to save the plot. Defaults to None.
+            plot_config (Optional[Dict], optional): Plot configuration. Defaults to None.
+
+        Raises:
+            AssertionError: If save is not None and save_path is None.
+        """
         # check that save is not None if save_path is not None
         if save_path is not None:
             assert (
@@ -112,6 +120,18 @@ class MAPDVisualizationTool:
         save_path: Optional[str] = None,
         plot_config: Optional[Dict] = None,
     ) -> None:
+        """
+        Plot consistently learned ratios for each suite over epochs.
+
+        Args:
+            show (bool, optional): Whether to show the plot. Defaults to True.
+            save (Optional[bool], optional): Whether to save the plot. Defaults to None.
+            save_path (Optional[str], optional): Path to save the plot. Defaults to None.
+            plot_config (Optional[Dict], optional): Plot configuration. Defaults to None.
+
+        Raises:
+            AssertionError: If save is not None and save_path is None.
+        """
         # check that save is not None if save_path is not None
         if save_path is not None:
             assert (
@@ -211,6 +231,18 @@ class MAPDVisualizationTool:
         save_path: Optional[str] = None,
         plot_config: Optional[Dict] = None,
     ) -> None:
+        """
+        Plot first learned ratios for each suite over epochs.
+
+        Args:
+            show (bool, optional): Whether to show the plot. Defaults to True.
+            save (Optional[bool], optional): Whether to save the plot. Defaults to None.
+            save_path (Optional[str], optional): Path to save the plot. Defaults to None.
+            plot_config (Optional[Dict], optional): Plot configuration. Defaults to None.
+
+        Raises:
+            AssertionError: If save is not None and save_path is None.
+        """
         # check that save is not None if save_path is not None
         if save_path is not None:
             assert (
@@ -276,6 +308,18 @@ class MAPDVisualizationTool:
         save_path: Optional[str] = None,
         plot_config: Optional[Dict] = None,
     ) -> None:
+        """
+        Plot loss curve for each suite over epochs.
+
+        Args:
+            show (bool, optional): Whether to show the plot. Defaults to True.
+            save (Optional[bool], optional): Whether to save the plot. Defaults to None.
+            save_path (Optional[str], optional): Path to save the plot. Defaults to None.
+            plot_config (Optional[Dict], optional): Plot configuration. Defaults to None.
+
+        Raises:
+            AssertionError: If save is not None and save_path is None.
+        """
         # check that save is not None if save_path is not None
         if save_path is not None:
             assert (
@@ -326,6 +370,10 @@ class MAPDVisualizationTool:
             plt.savefig(save_path, bbox_inches="tight")
 
     def all_plots(self):
+        """
+        Plot all plots.
+        """
+        # self.violin_loss_plot()
         self.loss_curve_plot()
         self.probe_accuracy_plot()
         self.first_learned_plot()
@@ -346,6 +394,12 @@ class MAPDVisualizationTool:
         pass
 
     def _suite_to_name(self) -> Dict[str, str]:
+        """
+        Convert suite names to more readable names.
+
+        Returns:
+            Dict[str, str]: Dictionary mapping suite names to more readable names.
+        """
         self.suites = list(set(self._suite_indices.values()))
         temp_dict = {}
         for suite in self.suites:
@@ -359,6 +413,9 @@ class MAPDVisualizationTool:
         return temp_dict
 
     def _prepare_val_data(self):
+        """
+        Prepare validation data.
+        """
         self.val_data = (
             self.data.filter(ds.field("stage") == "val").to_table().to_pandas()
         )
@@ -386,6 +443,9 @@ class MAPDVisualizationTool:
         self._val_suites = self.val_data["suite"].unique()
 
     def _prepare_train_data(self):
+        """
+        Prepare training data.
+        """
         self.train_data = (
             self.data.filter(ds.field("stage") == "train").to_table().to_pandas()
         )
@@ -400,6 +460,9 @@ class MAPDVisualizationTool:
         self._train_suites = self.train_data["suite"].unique()
 
     def _prepare_plot_styles(self):
+        """
+        Prepare plot styles.
+        """
         self._line_styles = ["solid", "dashed", "dashdot", "dotted"]
 
         self._marker_list = ["o", "X"]
@@ -417,6 +480,9 @@ class MAPDVisualizationTool:
         ]
 
     def _plot_dicts(self):
+        """
+        Prepare plot dicts.
+        """
         # make dict with one list for each suite
         self._ratios = {}
         for suite in self.all_suites:
