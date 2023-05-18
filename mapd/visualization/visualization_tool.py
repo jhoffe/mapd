@@ -44,7 +44,7 @@ class MAPDVisualizationTool:
         self.train_data["epoch"] = self.train_data["epoch"].astype(int)
 
         # add probe suite to train called "Train"
-        self.train_data["probe_suite"] = "Other"
+        self.train_data["suite"] = "Other"
 
         self.suite_to_name = self._suite_to_name()
 
@@ -95,7 +95,6 @@ class MAPDVisualizationTool:
             "tab:olive",
             "tab:brown",
             "tab:cyan",
-            "tab:gray",
         ]
 
     def _suite_to_name(self) -> Dict[str, str]:
@@ -115,7 +114,7 @@ class MAPDVisualizationTool:
         self,
         show: bool = True,
         save: Optional[bool] = None,
-        save_path: Optional[os.PathLike] = None,
+        save_path: Optional[str] = None,
         plot_config: Optional[Dict] = None,
     ) -> None:
         # check that save is not None if save_path is not None
@@ -138,7 +137,7 @@ class MAPDVisualizationTool:
                     linestyle=self._line_styles[0],
                     marker=self._marker_list[0],
                     markersize=3,
-                    color=self._marker_colors[0],
+                    color=self._marker_colors[-1],
                 )
             else:
                 plt.plot(
@@ -166,7 +165,7 @@ class MAPDVisualizationTool:
         self,
         show: bool = True,
         save: Optional[bool] = None,
-        save_path: Optional[os.PathLike] = None,
+        save_path: Optional[str] = None,
         plot_config: Optional[Dict] = None,
     ) -> None:
         # check that save is not None if save_path is not None
@@ -180,7 +179,7 @@ class MAPDVisualizationTool:
         self,
         show: bool = True,
         save: Optional[bool] = None,
-        save_path: Optional[os.PathLike] = None,
+        save_path: Optional[str] = None,
         plot_config: Optional[Dict] = None,
     ) -> None:
         # check that save is not None if save_path is not None
@@ -194,7 +193,7 @@ class MAPDVisualizationTool:
         self,
         show: bool = True,
         save: Optional[bool] = None,
-        save_path: Optional[os.PathLike] = None,
+        save_path: Optional[str] = None,
         plot_config: Optional[Dict] = None,
     ) -> None:
         # check that save is not None if save_path is not None
@@ -208,7 +207,7 @@ class MAPDVisualizationTool:
         self,
         show: bool = True,
         save: Optional[bool] = None,
-        save_path: Optional[os.PathLike] = None,
+        save_path: Optional[str] = None,
         plot_config: Optional[Dict] = None,
     ) -> None:
         # check that save is not None if save_path is not None
