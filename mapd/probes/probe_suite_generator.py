@@ -9,7 +9,7 @@ from torchvision.transforms import transforms
 from mapd.proxies.proxy_calculator import ProxyCalculator
 
 
-class ProbeSuiteGenerator(Dataset):
+class ProbeSuiteDataset(Dataset):
     dataset: Dataset
     remaining_indices: list = []
     used_indices: list = []
@@ -73,7 +73,7 @@ class ProbeSuiteGenerator(Dataset):
 
     def add_suite(
         self, name: str, suite: List[Tuple[torch.Tensor, int, int]]
-    ) -> "ProbeSuiteGenerator":
+    ) -> "ProbeSuiteDataset":
         for (sample, target), idx in suite:
             self.index_to_suite[idx] = name
             self.suites[idx] = ((sample, target), idx)

@@ -8,14 +8,14 @@ import seaborn as sns
 import numpy as np
 import random
 from typing import List, Dict, Tuple, Union, Optional
-from mapd.probes.probe_suite_generator import ProbeSuiteGenerator
+from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 
 
 class MAPDVisualizationTool:
     def __init__(
         self,
         mapd_loss_dataset_path: str,
-        probe_suite_dataset: ProbeSuiteGenerator,
+        probe_suite_dataset: ProbeSuiteDataset,
     ) -> None:
         self.data = ds.dataset(
             mapd_loss_dataset_path,
