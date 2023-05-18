@@ -117,47 +117,67 @@ class MAPDVisualizationTool:
             assert (
                 save is True
             ), "Remember to set save to True if you want to save the plot!"
-        
+
         self._plot_dicts()
 
         self._learned["Other"] = set(
             self.train_data.groupby(["epoch"])
             .get_group(self._max_epoch - 1)["sample_index"]
-            .values[self.train_data.groupby(["epoch"]).get_group(self._max_epoch - 1)["prediction"]]
+            .values[
+                self.train_data.groupby(["epoch"]).get_group(self._max_epoch - 1)[
+                    "prediction"
+                ]
+            ]
         )
 
         for val_suite in self._val_suites:
             suite_group = self.val_data.groupby(["suite"]).get_group(val_suite)
             self._learned[val_suite] = set(
-                suite_group.groupby(["epoch"]).get_group(self._max_epoch - 1)[
-                    "sample_index"
-                ].values[
-                    suite_group.groupby(["epoch"])
-                    .get_group(self._max_epoch - 1)["prediction"]
+                suite_group.groupby(["epoch"])
+                .get_group(self._max_epoch - 1)["sample_index"]
+                .values[
+                    suite_group.groupby(["epoch"]).get_group(self._max_epoch - 1)[
+                        "prediction"
+                    ]
                 ]
             )
 
         suite_size = len(self._suite_indices) / len(self._val_suites)
-        train_size = len(self.train_data['sample_index'].unique())
+        train_size = len(self.train_data["sample_index"].unique())
 
         print("Computing consistently learned ratios...")
-        for epoch in tqdm(reversed(range(self._max_epoch)), desc="Epochs", total=self._max_epoch):
+        for epoch in tqdm(
+            reversed(range(self._max_epoch)), desc="Epochs", total=self._max_epoch
+        ):
             epoch_train_group = self.train_data.groupby(["epoch"]).get_group(epoch)
-            epoch_train_group = epoch_train_group[epoch_train_group["sample_index"].isin(self._learned["Other"])]
-            self._ratios["Other"].insert(0, 100*len(self._learned["Other"]) / train_size)
+            epoch_train_group = epoch_train_group[
+                epoch_train_group["sample_index"].isin(self._learned["Other"])
+            ]
+            self._ratios["Other"].insert(
+                0, 100 * len(self._learned["Other"]) / train_size
+            )
             self._learned["Other"] = set(
-                epoch_train_group["sample_index"][epoch_train_group["prediction"]].values
+                epoch_train_group["sample_index"][
+                    epoch_train_group["prediction"]
+                ].values
             )
             epoch_val_group = self.val_data.groupby(["epoch"]).get_group(epoch)
 
             for val_suite in self._val_suites:
-                val_suite_group = epoch_val_group.groupby(["suite"]).get_group(val_suite)
-                val_suite_group = val_suite_group[val_suite_group["sample_index"].isin(self._learned[val_suite])]
-                self._learned[val_suite] = set(
-                    val_suite_group["sample_index"][val_suite_group["prediction"]].values
+                val_suite_group = epoch_val_group.groupby(["suite"]).get_group(
+                    val_suite
                 )
-                self._ratios[val_suite].insert(0, 100*len(self._learned[val_suite]) / suite_size)
-
+                val_suite_group = val_suite_group[
+                    val_suite_group["sample_index"].isin(self._learned[val_suite])
+                ]
+                self._learned[val_suite] = set(
+                    val_suite_group["sample_index"][
+                        val_suite_group["prediction"]
+                    ].values
+                )
+                self._ratios[val_suite].insert(
+                    0, 100 * len(self._learned[val_suite]) / suite_size
+                )
 
         plt.figure(figsize=(10, 5))
         plt.title(
@@ -196,25 +216,33 @@ class MAPDVisualizationTool:
             assert (
                 save is True
             ), "Remember to set save to True if you want to save the plot!"
-        
+
         self._plot_dicts()
 
         suite_size = len(self._suite_indices) / len(self._val_suites)
-        train_size = len(self.train_data['sample_index'].unique())
+        train_size = len(self.train_data["sample_index"].unique())
 
         for epoch in tqdm(range(self._max_epoch), desc="Epochs", total=self._max_epoch):
             epoch_train_group = self.train_data.groupby(["epoch"]).get_group(epoch)
             self._learned["Other"].update(
-                epoch_train_group["sample_index"][epoch_train_group["prediction"]].values
+                epoch_train_group["sample_index"][
+                    epoch_train_group["prediction"]
+                ].values
             )
-            self._ratios["Other"].append(100*len(self._learned["Other"]) / train_size)
+            self._ratios["Other"].append(100 * len(self._learned["Other"]) / train_size)
             epoch_val_group = self.val_data.groupby(["epoch"]).get_group(epoch)
             for val_suite in self._val_suites:
-                val_suite_group = epoch_val_group.groupby(["suite"]).get_group(val_suite)
-                self._learned[val_suite].update(
-                    val_suite_group["sample_index"][val_suite_group["prediction"]].values
+                val_suite_group = epoch_val_group.groupby(["suite"]).get_group(
+                    val_suite
                 )
-                self._ratios[val_suite].append(100*len(self._learned[val_suite]) / len(val_suite_group))
+                self._learned[val_suite].update(
+                    val_suite_group["sample_index"][
+                        val_suite_group["prediction"]
+                    ].values
+                )
+                self._ratios[val_suite].append(
+                    100 * len(self._learned[val_suite]) / len(val_suite_group)
+                )
 
         plt.figure(figsize=(10, 5))
         plt.title(
@@ -259,10 +287,9 @@ class MAPDVisualizationTool:
             f"Loss Curve for {len(self.all_suites)} Suites"
         ) if plot_config is None else plt.title(plot_config["title"])
 
-
         i = 0
         for suite in self._val_suites:
-            if not "[Val]" in suite:    
+            if not "[Val]" in suite:
                 indices = lcp_df["sample_index"][lcp_df["suite"] == suite].unique()
                 for idx in indices:
                     plt.plot(
@@ -276,17 +303,19 @@ class MAPDVisualizationTool:
                 # plot aggregated loss for each suite (mean over all samples)
                 plt.plot(
                     np.arange(self._max_epoch),
-                    lcp_df.loc[lcp_df["suite"] == suite].groupby(["epoch"]).agg({"loss": "mean"}),
+                    lcp_df.loc[lcp_df["suite"] == suite]
+                    .groupby(["epoch"])
+                    .agg({"loss": "mean"}),
                     label=suite,
                     linewidth=1,
                     color=self._marker_colors[i],
-                    zorder = 2,
+                    zorder=2,
                 )
 
                 i += 1
 
         plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", borderaxespad=0.0)
-        #plt.ylim(0, 14)
+        # plt.ylim(0, 14)
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
 
@@ -301,7 +330,6 @@ class MAPDVisualizationTool:
         self.probe_accuracy_plot()
         self.first_learned_plot()
         self.consistently_learned_plot()
-
 
     def violin_loss_plot(
         self,
@@ -354,7 +382,7 @@ class MAPDVisualizationTool:
             ] = (suite_name + " [Val]")
 
         self.val_data["prediction"] = self.val_data["y"] == self.val_data["y_hat"]
-        
+
         self._val_suites = self.val_data["suite"].unique()
 
     def _prepare_train_data(self):
@@ -366,10 +394,9 @@ class MAPDVisualizationTool:
         ]
         self.train_data["epoch"] = self.train_data["epoch"].astype(int)
 
-        
         self.train_data["suite"] = "Other"
         self.train_data["prediction"] = self.train_data["y"] == self.train_data["y_hat"]
-        
+
         self._train_suites = self.train_data["suite"].unique()
 
     def _prepare_plot_styles(self):
