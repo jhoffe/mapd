@@ -30,10 +30,10 @@ def _create_sklearn_predict_matrix(dataset_path: Union[str, os.PathLike],
 
     i = 0
     while True:
+        if epoch_range is not None and (i < epoch_range[0] or i > epoch_range[1]):
+            continue
         epoch_df = dataset.filter((ds.field("epoch") == i) & (ds.field("stage") == "train")).to_table().to_pandas()
         if epoch_df.empty:
-            break
-        if epoch_range is not None and (i < epoch_range[0] or i > epoch_range[1]):
             break
 
         for sample_index, loss_data in epoch_df.groupby("sample_index").agg({"loss": "first"}).iterrows():
