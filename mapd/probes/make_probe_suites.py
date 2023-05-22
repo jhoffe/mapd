@@ -1,8 +1,6 @@
 import os
 from typing import Union
 
-from torch.utils.data import Dataset
-
 from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 from mapd.probes.utils.idx_dataset import IDXDataset
 from mapd.proxies.proxy_calculator import ProxyCalculator
@@ -19,9 +17,10 @@ def make_probe_suites(
     Helper function to generate a probe suite from a dataset and proxy calculator.
 
     Args:
-        dataset(Dataset): Dataset to generate probe suite from.
+        dataset(IDXDataset): Dataset to generate probe suite from.
         label_count(int): Number of labels in dataset.
-        proxy_calculator(str, os.PathLike, ProxyCalculator): A path to the stored proxy results or a ProxyCalculator object.
+        proxy_calculator(str, os.PathLike, ProxyCalculator): A path to the stored
+            proxy results or a ProxyCalculator object.
         num_probes(int): Number of probes to generate.
         add_train_suite(bool): Whether to add the train suite to the probe suite.
     Returns:

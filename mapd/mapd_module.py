@@ -1,6 +1,4 @@
-import os
 from abc import ABCMeta, abstractmethod
-from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -12,7 +10,6 @@ from lightning.pytorch.utilities.model_helpers import is_overridden
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import LabelEncoder
 from torch import Tensor
-from torch.utils.data import Dataset
 
 from mapd.classifiers.make_mapd_classifier import make_mapd_classifier
 from mapd.classifiers.make_predictions import make_predictions
@@ -55,18 +52,19 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
         if is_overridden("on_before_batch_transfer", self, MAPDModule):
             raise ValueError(
-                "on_before_batch_transfer is a reserved method name. Please rename your method."
+                "on_before_batch_transfer is a reserved method name. \
+                Please rename your method."
             )
 
     @classmethod
     @abstractmethod
     def batch_loss(cls, logits: Any, y: Any) -> Tensor:
-        raise NotImplemented("batch_loss method not implemented")
+        raise NotImplementedError("batch_loss method not implemented")
 
     @classmethod
     @abstractmethod
     def mapd_settings(cls) -> Dict[str, Any]:
-        raise NotImplemented("mapd_settings method not implemented")
+        raise NotImplementedError("mapd_settings method not implemented")
 
     def _get_setting(self, setting_name: str, default: Any = None) -> Any:
         return self.mapd_settings().get(setting_name, default)
@@ -99,11 +97,6 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
             ["train" if self.training else "val"] * batch_losses.shape[0],
         )
         self.mapd_probe_metrics_.append(batch)
-
-        # self.mapd_losses_.append(batch_losses)
-        # self.mapd_y_hats_.append(logits.argmax(dim=1))
-        # self.mapd_ys_.append(y)
-        # self.mapd_stages_ += ["train" if self.training else "val"] * batch_losses.shape[0]
 
     def mapd_log(self, logits: Any, y: Any) -> "MAPDModule":
         if self.mapd_disabled_:

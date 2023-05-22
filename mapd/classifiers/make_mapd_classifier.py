@@ -5,15 +5,13 @@ from typing import Any, Dict, Optional, Tuple, Union
 import numpy as np
 import pyarrow as pa
 import pyarrow.dataset as ds
-from sklearn.base import BaseEstimator, is_classifier
-from sklearn.compose import TransformedTargetRegressor
+from sklearn.base import BaseEstimator
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier, XGBRFClassifier

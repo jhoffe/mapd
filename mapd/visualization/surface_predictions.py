@@ -2,14 +2,13 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
-from torch.utils.data import Dataset
 
 from mapd.probes.utils.idx_dataset import IDXDataset
 
 
 def display_surface_predictions(
     predictions: Dict[int, Tuple[str, float]],
-    dataset: Dataset,
+    dataset: IDXDataset,
     probe_suite: str = "typical",
     labels: Dict[int, str] = None,
     ordered: bool = False,
@@ -19,13 +18,14 @@ def display_surface_predictions(
     Helper function to generate a surface plot of the probe suite predictions.
 
     Args:
-        predictions(Dict[int, Tuple[str, float]]): A dictionary of predictions from a probe suite.
+        predictions(Dict[int, Tuple[str, float]]): A dictionary of predictions
+            from a probe suite.
         dataset(IDXDataset): The dataset used to generate the probe suite.
         probe_suite(str): The probe suite to generate the surface plot for.
         labels(Dict[int, str]): A dictionary of labels for the dataset.
         ordered(bool): Whether to order the surface plot by prediction probability.
-        display_sample_fn(Optional[Callable[[plt.Axes, Any], None]]): A function to display the sample. If None,
-        the sample is displayed as a grayscale image.
+        display_sample_fn(Optional[Callable[[plt.Axes, Any], None]]): A function to
+            display the sample. If None, the sample is displayed as a grayscale image.
 
     Returns:
         plt.Figure: The figure containing the surface plot.

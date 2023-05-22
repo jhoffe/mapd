@@ -51,8 +51,10 @@ class MAPDVisualizationTool:
         Args:
             show (bool, optional): Whether to show the plot. Defaults to True.
             save (Optional[bool], optional): Whether to save the plot. Defaults to None.
-            save_path (Optional[str], optional): Path to save the plot. Defaults to None.
-            plot_config (Optional[Dict], optional): Plot configuration. Defaults to None.
+            save_path (Optional[str], optional): Path to save the plot.
+                Defaults to None.
+            plot_config (Optional[Dict], optional): Plot configuration.
+                Defaults to None.
 
         Raises:
             AssertionError: If save is not None and save_path is None.
@@ -126,8 +128,10 @@ class MAPDVisualizationTool:
         Args:
             show (bool, optional): Whether to show the plot. Defaults to True.
             save (Optional[bool], optional): Whether to save the plot. Defaults to None.
-            save_path (Optional[str], optional): Path to save the plot. Defaults to None.
-            plot_config (Optional[Dict], optional): Plot configuration. Defaults to None.
+            save_path (Optional[str], optional): Path to save the plot.
+                Defaults to None.
+            plot_config (Optional[Dict], optional): Plot configuration.
+                Defaults to None.
 
         Raises:
             AssertionError: If save is not None and save_path is None.
@@ -237,8 +241,10 @@ class MAPDVisualizationTool:
         Args:
             show (bool, optional): Whether to show the plot. Defaults to True.
             save (Optional[bool], optional): Whether to save the plot. Defaults to None.
-            save_path (Optional[str], optional): Path to save the plot. Defaults to None.
-            plot_config (Optional[Dict], optional): Plot configuration. Defaults to None.
+            save_path (Optional[str], optional): Path to save the plot.
+                Defaults to None.
+            plot_config (Optional[Dict], optional): Plot configuration.
+                Defaults to None.
 
         Raises:
             AssertionError: If save is not None and save_path is None.
@@ -251,7 +257,6 @@ class MAPDVisualizationTool:
 
         self._plot_dicts()
 
-        suite_size = len(self._suite_indices) / len(self._val_suites)
         train_size = len(self.train_data["sample_index"].unique())
 
         for epoch in tqdm(range(self._max_epoch), desc="Epochs", total=self._max_epoch):
@@ -314,8 +319,10 @@ class MAPDVisualizationTool:
         Args:
             show (bool, optional): Whether to show the plot. Defaults to True.
             save (Optional[bool], optional): Whether to save the plot. Defaults to None.
-            save_path (Optional[str], optional): Path to save the plot. Defaults to None.
-            plot_config (Optional[Dict], optional): Plot configuration. Defaults to None.
+            save_path (Optional[str], optional): Path to save the plot.
+                Defaults to None.
+            plot_config (Optional[Dict], optional): Plot configuration.
+                Defaults to None.
 
         Raises:
             AssertionError: If save is not None and save_path is None.
@@ -333,7 +340,7 @@ class MAPDVisualizationTool:
 
         i = 0
         for suite in self._val_suites:
-            if not "[Val]" in suite:
+            if "[Val]" not in suite:
                 indices = lcp_df["sample_index"][lcp_df["suite"] == suite].unique()
                 for idx in indices:
                     plt.plot(

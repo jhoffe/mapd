@@ -12,17 +12,16 @@ def make_dataloaders(
     dataloader_kwargs: Optional[dict] = None,
 ):
     """
-    Makes dataloaders for the MAPDModule. The first dataloader is the probe suite dataset, and the rest are the
-    validation dataloaders.
+    Makes dataloaders for the MAPDModule. The first dataloader is the
+    probe suite dataset, and the rest are the validation dataloaders.
 
     Args:
         validation_dataloaders(List[DataLoader]): List of validation dataloaders.
         probe_suite_dataset(ProbeSuiteDataset): The probe suite dataset.
         dataloader_kwargs(Dict[str, Any]): Keyword arguments for the dataloader.
 
-    Returns: List of dataloaders. The first dataloader is the probe suite dataset, and the rest are the validation
-    dataloaders.
-
+    Returns: List of dataloaders. The first dataloader is the probe suite
+    dataset, and the rest are the validation dataloaders.
     """
     default_dataloader_options = {
         "batch_size": 512,
