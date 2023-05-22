@@ -16,6 +16,7 @@ from mapd.classifiers.make_predictions import make_predictions
 from mapd.probes.make_probe_suites import make_probe_suites
 from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 from mapd.probes.utils.idx_dataset import IDXDataset
+from mapd.visualization.visualization_tool import MAPDVisualizationTool
 
 
 class MAPDModule(LightningModule, metaclass=ABCMeta):
@@ -281,3 +282,9 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         return make_predictions(
             probes_path, clf, label_encoder, epoch_range=epoch_range, n_jobs=n_jobs
         )
+
+    def visualiaztion_tool(
+        self, probe_suite_dataset: ProbeSuiteDataset
+    ) -> MAPDVisualizationTool:
+        probes_path = self._get_setting("probes_output_path", "mapd_probes")
+        return MAPDVisualizationTool(probes_path, probe_suite_dataset)

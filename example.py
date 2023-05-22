@@ -154,6 +154,10 @@ probe_emnist_module = EMNISTModule()
 probe_trainer.fit(probe_emnist_module.as_probes(), train_dataloaders=probe_train_dataloader,
                   val_dataloaders=validation_dataloaders)
 
+# After training, we can plot the results
+plot_tool = probe_emnist_module.visualiaztion_tool(emnist_train_probes)
+plot_tool.all_plots()
+
 # Now we can create the classifier
 mapd_clf, label_encoder = probe_emnist_module.make_mapd_classifier(emnist_train_probes)
 
