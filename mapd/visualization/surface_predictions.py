@@ -1,12 +1,13 @@
 from typing import Dict, Tuple, Callable, Any, Optional
 
 import numpy as np
+from torch.utils.data import Dataset
 
 from mapd.probes.utils.idx_dataset import IDXDataset
 import matplotlib.pyplot as plt
 
 
-def display_surface_predictions(predictions: Dict[int, Tuple[str, float]], dataset: IDXDataset,
+def display_surface_predictions(predictions: Dict[int, Tuple[str, float]], dataset: Dataset,
                                 probe_suite: str = "typical", labels: Dict[int, str] = None, ordered: bool = False,
                                 display_sample_fn: Optional[Callable[[plt.Axes, Any], None]] = None) -> plt.Figure:
     """
@@ -41,15 +42,16 @@ def display_surface_predictions(predictions: Dict[int, Tuple[str, float]], datas
     fig.tight_layout(pad=3.0)
 
     for ax, idx in zip(axs.flatten(), sampled_indices):
-        (sample, label), _ = dataset[idx]
-
-        label_str = labels[label] if labels is not None else str(label)
+        sample = dataset[idx]
 
         if display_sample_fn is not None:
             display_sample_fn(ax, sample)
             continue
 
+        img, label = sample
+        label_str = labels[label] if labels is not None else str(label)
+
         ax.set_title(f"Label: {label_str} ({idx})")
-        ax.imshow(sample.T.squeeze(), cmap="gray")
+        ax.imshow(img.squeeze().T, cmap="gray")
 
     return fig

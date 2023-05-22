@@ -162,9 +162,7 @@ class ProbeSuiteDataset(Dataset):
         if index in self.used_indices:
             return self.suites[index]
 
-        sample, target = self.dataset[index]
-
-        return (sample, target), index
+        return self.dataset[index]
 
     def __len__(self):
         if self.only_probes:

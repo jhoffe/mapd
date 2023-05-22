@@ -1,10 +1,14 @@
+import pickle
+import time
+
+import numpy as np
 from torch.utils.data import DataLoader
 
 import mapd
 import torchvision
 from torchvision import transforms
 
-from mapd.classifiers.make_predictions import make_predictions
+from mapd.probes.make_probe_suites import make_probe_suites
 from mapd.utils.make_dataloaders import make_dataloaders
 from torch import nn
 import lightning as L
@@ -13,10 +17,6 @@ from torch.optim import SGD
 import torch
 from torch.utils.data import random_split
 from mapd.utils.wrap_dataset import wrap_dataset
-
-from mapd.visualization.surface_predictions import display_surface_predictions
-import matplotlib.pyplot as plt
-from string import digits
 
 
 # Define the neural network model
@@ -109,33 +109,51 @@ EMNIST_ROOT = "data"
 torchvision.datasets.EMNIST(root=EMNIST_ROOT, split="letters", download=True)
 
 emnist_transforms = transforms.Compose([transforms.ToTensor()])
-mnist_full = torchvision.datasets.EMNIST(EMNIST_ROOT, train=True, split="balanced", transform=emnist_transforms)
-mnist_train, mnist_val = random_split(mnist_full, [0.8, 0.2])
+emnist_full = torchvision.datasets.EMNIST(EMNIST_ROOT, train=True, split="balanced", transform=emnist_transforms)
+emnist_train, mnist_val = random_split(emnist_full, [0.8, 0.2])
 
 # Define the dataloaders
 BATCH_SIZE = 256
-NUM_WORKERS = 8
+NUM_WORKERS = 16
 
-NUM_PROXY_EPOCHS = 20
+NUM_PROXY_EPOCHS = 100
 NUM_PROBES_EPOCH = 100
 
 # We need to wrap the datasets in IDXDataset, to uniquely identify each sample.
-idx_mnist_train = wrap_dataset(mnist_train)
+idx_mnist_train = wrap_dataset(emnist_train)
 
 proxy_train_dataloader = DataLoader(idx_mnist_train, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True,
                                     pin_memory=True)
 
-# Setup for training
-proxy_trainer = L.Trainer(max_epochs=NUM_PROXY_EPOCHS, accelerator="gpu")
-proxy_emnist_module = EMNISTModule()
-proxy_trainer.fit(proxy_emnist_module.as_proxies(), proxy_train_dataloader)
+train_dataloader = DataLoader(emnist_train, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True,
+                              pin_memory=True)
+
+
+def run_proxies():
+    # Setup for training
+    proxy_trainer = L.Trainer(max_epochs=NUM_PROXY_EPOCHS, accelerator="gpu", barebones=True, precision=16)
+    proxy_emnist_module = EMNISTModule()
+    proxy_trainer.fit(proxy_emnist_module.as_proxies(), proxy_train_dataloader)
+
+
+# Run the benchmarks
+N_LOOPS = 20
+
+proxy_times = []
+for i in range(N_LOOPS):
+    print("Loop (Proxy)", i)
+    start = time.perf_counter()
+    run_proxies()
+    end = time.perf_counter()
+    proxy_times.append(end - start)
 
 # We have now created the proxies needed for the probes
-emnist_train_probes = proxy_emnist_module.make_probe_suites(idx_mnist_train, num_labels=LABEL_COUNT,
-                                                            add_train_suite=True)
+emnist_train_probes = make_probe_suites(idx_mnist_train, label_count=LABEL_COUNT, proxy_calculator="mapd_proxies",
+                                        add_train_suite=True)
 
 # Now we can create the dataloaders for the probes
-probe_train_dataloader = DataLoader(emnist_train_probes, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True,
+probe_train_dataloader = DataLoader(emnist_train_probes, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS,
+                                    shuffle=True,
                                     pin_memory=True)
 
 # Now the validation dataloaders
@@ -143,41 +161,57 @@ validation_dataloader = DataLoader(wrap_dataset(mnist_val), batch_size=BATCH_SIZ
                                    shuffle=False,
                                    pin_memory=True)
 
+# Now the validation dataloaders
+validation_dataloader_without_idx = DataLoader(mnist_val, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS,
+                                               shuffle=False,
+                                               pin_memory=True)
+
 validation_dataloaders = make_dataloaders([validation_dataloader], emnist_train_probes, dataloader_kwargs={
     "batch_size": BATCH_SIZE,
     "num_workers": NUM_WORKERS,
-    "prefetch_factor": 2
+    "prefetch_factor": 4
 })
 
-# Now we can train the probes
-probe_trainer = L.Trainer(max_epochs=NUM_PROBES_EPOCH, accelerator="gpu")
-probe_emnist_module = EMNISTModule()
-probe_trainer.fit(probe_emnist_module.as_probes(), train_dataloaders=probe_train_dataloader,
-                  val_dataloaders=validation_dataloaders)
 
-# Now we can create the classifier
-mapd_clf, label_encoder = probe_emnist_module.make_mapd_classifier(emnist_train_probes)
+def run_probes():
+    # Now we can train the probes
+    probe_trainer = L.Trainer(max_epochs=NUM_PROBES_EPOCH, accelerator="gpu", barebones=True, precision=16)
+    probe_emnist_module = EMNISTModule()
+    probe_trainer.fit(probe_emnist_module.as_probes(), train_dataloaders=probe_train_dataloader,
+                      val_dataloaders=validation_dataloaders)
 
-# Now we can surface some examples
-probe_predictions = make_predictions("mapd_probes", mapd_clf, label_encoder, n_jobs=16)
 
-# Define the possible labels (for plotting)
-letters = digits + "ABCDEFGHIJKLMNOPQRSTUVWXYZabdefchnqrt"
-labels = {i: l for i, l in enumerate(letters)}
+def run_without_mapd():
+    emnist_module = EMNISTModule().disable_mapd()
 
-fig = display_surface_predictions(probe_predictions, mnist_train, probe_suite="typical", labels=labels, ordered=True)
-plt.show()
+    trainer = L.Trainer(max_epochs=NUM_PROBES_EPOCH, accelerator="gpu", barebones=True, precision=16)
+    trainer.fit(emnist_module, train_dataloaders=train_dataloader, val_dataloaders=validation_dataloader_without_idx)
 
-fig = display_surface_predictions(probe_predictions, mnist_train, probe_suite="atypical", labels=labels, ordered=True)
-plt.show()
 
-fig = display_surface_predictions(probe_predictions, mnist_train, probe_suite="random_outputs", labels=labels,
-                                  ordered=True)
-plt.show()
+probes_times = []
+for i in range(N_LOOPS):
+    print("Loop (Probes)", i)
+    start = time.perf_counter()
+    run_probes()
+    end = time.perf_counter()
+    probes_times.append(end - start)
 
-fig = display_surface_predictions(probe_predictions, mnist_train, probe_suite="random_inputs_outputs", labels=labels,
-                                  ordered=True)
-plt.show()
+without_times = []
+for i in range(N_LOOPS):
+    print("Loop (Without)", i)
+    start = time.perf_counter()
+    run_without_mapd()
+    end = time.perf_counter()
+    without_times.append(end - start)
 
-fig = display_surface_predictions(probe_predictions, mnist_train, probe_suite="train", labels=labels, ordered=True)
-plt.show()
+benchmarks = {
+    "proxy": proxy_times,
+    "probes": probes_times,
+    "without": without_times
+}
+with open("benchmarks.pickle", "wb") as pickle_file:
+    pickle.dump(benchmarks, pickle_file)
+
+print(f"Average proxy time: {np.mean(proxy_times):.5f} +/- {np.std(proxy_times):.5f}")
+print(f"Average probes time: {np.mean(probes_times):.5f} +/- {np.std(probes_times):.5f}")
+print(f"Average without time: {np.mean(without_times):.5f} +/- {np.std(without_times):.5f}")

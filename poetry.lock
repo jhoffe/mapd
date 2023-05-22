@@ -3093,6 +3093,24 @@ files = [
 diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
+name = "pyperf"
+version = "2.6.0"
+description = "Python module to run and analyze benchmarks"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pyperf-2.6.0-py3-none-any.whl", hash = "sha256:3e95511cf0c39d68e9e55716ef1b582e7fc1949ec831ef710566b733b44aebaf"},
+    {file = "pyperf-2.6.0.tar.gz", hash = "sha256:d7e367a1ec7035d7a2b25f55a5925596c00cb15851f28cffd85b05b7307232af"},
+]
+
+[package.dependencies]
+psutil = ">=5.9.0"
+
+[package.extras]
+dev = ["importlib-metadata", "tox"]
+
+[[package]]
 name = "pyrsistent"
 version = "0.19.3"
 description = "Persistent/Functional/Immutable data structures"
@@ -4413,4 +4431,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<4.0.0"
-content-hash = "113dfb4caa350e34706e5080908d058e66919e5c2b836fd19d4d81eca65ab1f8"
+content-hash = "0b1ba978be449d72112044f896536edcad83c155ca2d8f532f5ed1f2e19946c4"

@@ -3,12 +3,13 @@ from typing import Union
 from torch.utils.data import Dataset
 
 from mapd.probes.probe_suite_generator import ProbeSuiteDataset
+from mapd.probes.utils.idx_dataset import IDXDataset
 from mapd.proxies.proxy_calculator import ProxyCalculator
 import os
 
 
 def make_probe_suites(
-        dataset: Dataset,
+        dataset: IDXDataset,
         label_count: int,
         proxy_calculator: Union[str, os.PathLike, ProxyCalculator],
         num_probes: int = 500,
