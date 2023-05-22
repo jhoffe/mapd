@@ -11,7 +11,6 @@ from mapd.proxies.proxy_calculator import ProxyCalculator
 def _get(x: Any) -> Any:
     return x[1]
 
-
 class ProbeSuiteDataset(Dataset):
     dataset: Dataset
     remaining_indices: list = []
