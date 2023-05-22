@@ -6,8 +6,11 @@ from torch.utils.data import DataLoader
 from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 
 
-def make_dataloaders(validation_dataloaders: List[DataLoader], probe_suite_dataset: ProbeSuiteDataset,
-                     dataloader_kwargs: Optional[dict] = None):
+def make_dataloaders(
+    validation_dataloaders: List[DataLoader],
+    probe_suite_dataset: ProbeSuiteDataset,
+    dataloader_kwargs: Optional[dict] = None,
+):
     """
     Makes dataloaders for the MAPDModule. The first dataloader is the probe suite dataset, and the rest are the
     validation dataloaders.
@@ -24,7 +27,7 @@ def make_dataloaders(validation_dataloaders: List[DataLoader], probe_suite_datas
     default_dataloader_options = {
         "batch_size": 512,
         "num_workers": 1,
-        "prefetch_factor": 1
+        "prefetch_factor": 1,
     }
 
     if dataloader_kwargs is not None:
@@ -34,4 +37,6 @@ def make_dataloaders(validation_dataloaders: List[DataLoader], probe_suite_datas
     probe_suite_dataset.only_probes = True
     probe_suite_dataset.dataset = None
 
-    return [DataLoader(probe_suite_dataset, **default_dataloader_options)] + validation_dataloaders
+    return [
+        DataLoader(probe_suite_dataset, **default_dataloader_options)
+    ] + validation_dataloaders

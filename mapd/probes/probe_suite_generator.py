@@ -1,5 +1,5 @@
 import random
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -8,8 +8,10 @@ from torchvision.transforms import transforms
 
 from mapd.proxies.proxy_calculator import ProxyCalculator
 
+
 def _get(x: Any) -> Any:
     return x[1]
+
 
 class ProbeSuiteDataset(Dataset):
     dataset: Dataset
@@ -128,10 +130,7 @@ class ProbeSuiteDataset(Dataset):
     def generate_corrupted(self):
         subset = self.get_subset()
 
-        suite = [
-            ((self.corruption_module(x), y), idx)
-            for (x, y), idx in subset
-        ]
+        suite = [((self.corruption_module(x), y), idx) for (x, y), idx in subset]
 
         self.add_suite("corrupted", suite)
 

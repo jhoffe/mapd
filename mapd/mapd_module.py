@@ -1,19 +1,18 @@
 import os
-from copy import deepcopy
 from abc import ABCMeta, abstractmethod
+from copy import deepcopy
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+import numpy as np
+import pyarrow as pa
+import pyarrow.dataset as ds
 import torch
 from lightning import LightningModule
-from typing import Any, List, Dict, Optional, Union, Tuple
-
+from lightning.pytorch.utilities.model_helpers import is_overridden
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import LabelEncoder
 from torch import Tensor
-import pyarrow.dataset as ds
-import pyarrow as pa
 from torch.utils.data import Dataset
-import numpy as np
-from lightning.pytorch.utilities.model_helpers import is_overridden
 
 from mapd.classifiers.make_mapd_classifier import make_mapd_classifier
 from mapd.classifiers.make_predictions import make_predictions
@@ -55,7 +54,9 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         self.probes_dataset = None
 
         if is_overridden("on_before_batch_transfer", self, MAPDModule):
-            raise ValueError("on_before_batch_transfer is a reserved method name. Please rename your method.")
+            raise ValueError(
+                "on_before_batch_transfer is a reserved method name. Please rename your method."
+            )
 
     @classmethod
     @abstractmethod
@@ -91,7 +92,12 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         logits, y = logits.detach(), y.detach()
         batch_losses = self.batch_loss(logits, y).detach()
 
-        batch = (batch_losses, logits.argmax(dim=1), y, ["train" if self.training else "val"] * batch_losses.shape[0])
+        batch = (
+            batch_losses,
+            logits.argmax(dim=1),
+            y,
+            ["train" if self.training else "val"] * batch_losses.shape[0],
+        )
         self.mapd_probe_metrics_.append(batch)
 
         # self.mapd_losses_.append(batch_losses)
@@ -160,9 +166,15 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
         proxies_output_path = self._get_setting("proxies_output_path", "mapd_proxies")
 
-        ds.write_dataset(table, proxies_output_path,
-                         partitioning=ds.partitioning(pa.schema([("epoch", pa.int64())]), flavor="filename"),
-                         existing_data_behavior="overwrite_or_ignore", format="parquet")
+        ds.write_dataset(
+            table,
+            proxies_output_path,
+            partitioning=ds.partitioning(
+                pa.schema([("epoch", pa.int64())]), flavor="filename"
+            ),
+            existing_data_behavior="overwrite_or_ignore",
+            format="parquet",
+        )
 
     def _write_probes(self) -> None:
         # sample_indices = torch.cat(self.mapd_indices_).cpu().numpy()
@@ -170,7 +182,9 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         # sample_y_hats = torch.cat(self.mapd_y_hats_).cpu().numpy()
         # sample_ys = torch.cat(self.mapd_ys_).cpu().numpy()
         # epochs = np.full(sample_indices.shape, self.current_epoch)
-        mapd_losses, mapd_y_hats, mapd_ys, mapd_stages = list(zip(*self.mapd_probe_metrics_))
+        mapd_losses, mapd_y_hats, mapd_ys, mapd_stages = list(
+            zip(*self.mapd_probe_metrics_)
+        )
 
         sample_indices = torch.cat(self.mapd_indices_).cpu().numpy()
         sample_losses = torch.cat(mapd_losses).cpu().numpy()
@@ -187,17 +201,23 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
                 pa.array(sample_y_hats),
                 pa.array(sample_ys),
                 pa.array(epochs),
-                pa.array(sample_stages)
+                pa.array(sample_stages),
             ],
             names=["sample_index", "loss", "y_hat", "y", "epoch", "stage"],
         )
 
         probes_output_path = self._get_setting("probes_output_path", "mapd_probes")
 
-        ds.write_dataset(table, probes_output_path,
-                         partitioning=ds.partitioning(pa.schema([("epoch", pa.int64()), ("stage", pa.string())]),
-                                                      flavor="filename"),
-                         existing_data_behavior="overwrite_or_ignore", format="parquet")
+        ds.write_dataset(
+            table,
+            probes_output_path,
+            partitioning=ds.partitioning(
+                pa.schema([("epoch", pa.int64()), ("stage", pa.string())]),
+                flavor="filename",
+            ),
+            existing_data_behavior="overwrite_or_ignore",
+            format="parquet",
+        )
 
     def on_train_epoch_end(self) -> None:
         if self.mapd_disabled_:
@@ -211,7 +231,9 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
         self._reset_mapd_attrs()
 
-    def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
+    def on_validation_batch_start(
+        self, batch: Any, batch_idx: int, dataloader_idx: int = 0
+    ) -> None:
         if self.mapd_disabled_:
             return
 
@@ -220,23 +242,49 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
         self.is_val_probes_ = dataloader_idx == 0
 
-    def make_probe_suites(self, dataset: IDXDataset, num_labels: int, num_probes: int = 500,
-                          add_train_suite: bool = False):
+    def make_probe_suites(
+        self,
+        dataset: IDXDataset,
+        num_labels: int,
+        num_probes: int = 500,
+        add_train_suite: bool = False,
+    ):
         proxies_path = self._get_setting("proxies_output_path", "mapd_proxies")
 
-        return make_probe_suites(dataset, num_labels, proxies_path, num_probes=num_probes,
-                                 add_train_suite=add_train_suite)
+        return make_probe_suites(
+            dataset,
+            num_labels,
+            proxies_path,
+            num_probes=num_probes,
+            add_train_suite=add_train_suite,
+        )
 
-    def make_mapd_classifier(self, probe_suite_dataset: ProbeSuiteDataset, clf: Union[str, BaseEstimator] = "xgboost",
-                             clf_kwargs: Optional[Dict[str, Any]] = None,
-                             epoch_range: Optional[Tuple[int, int]] = None):
+    def make_mapd_classifier(
+        self,
+        probe_suite_dataset: ProbeSuiteDataset,
+        clf: Union[str, BaseEstimator] = "xgboost",
+        clf_kwargs: Optional[Dict[str, Any]] = None,
+        epoch_range: Optional[Tuple[int, int]] = None,
+    ):
         probes_path = self._get_setting("probes_output_path", "mapd_probes")
 
-        return make_mapd_classifier(probes_path, probe_suite_dataset, clf, clf_kwargs=clf_kwargs,
-                                    epoch_range=epoch_range)
+        return make_mapd_classifier(
+            probes_path,
+            probe_suite_dataset,
+            clf,
+            clf_kwargs=clf_kwargs,
+            epoch_range=epoch_range,
+        )
 
-    def mapd_predict(self, clf: BaseEstimator, label_encoder: LabelEncoder,
-                     epoch_range: Optional[Tuple[int, int]] = None, n_jobs: int = 1):
+    def mapd_predict(
+        self,
+        clf: BaseEstimator,
+        label_encoder: LabelEncoder,
+        epoch_range: Optional[Tuple[int, int]] = None,
+        n_jobs: int = 1,
+    ):
         probes_path = self._get_setting("probes_output_path", "mapd_probes")
 
-        return make_predictions(probes_path, clf, label_encoder, epoch_range=epoch_range, n_jobs=n_jobs)
+        return make_predictions(
+            probes_path, clf, label_encoder, epoch_range=epoch_range, n_jobs=n_jobs
+        )

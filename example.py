@@ -4,7 +4,6 @@ import mapd
 import torchvision
 from torchvision import transforms
 
-from mapd.classifiers.make_predictions import make_predictions
 from mapd.utils.make_dataloaders import make_dataloaders
 from torch import nn
 import lightning as L

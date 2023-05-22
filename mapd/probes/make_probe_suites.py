@@ -1,3 +1,4 @@
+import os
 from typing import Union
 
 from torch.utils.data import Dataset
@@ -5,15 +6,14 @@ from torch.utils.data import Dataset
 from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 from mapd.probes.utils.idx_dataset import IDXDataset
 from mapd.proxies.proxy_calculator import ProxyCalculator
-import os
 
 
 def make_probe_suites(
-        dataset: IDXDataset,
-        label_count: int,
-        proxy_calculator: Union[str, os.PathLike, ProxyCalculator],
-        num_probes: int = 500,
-        add_train_suite: bool = False,
+    dataset: IDXDataset,
+    label_count: int,
+    proxy_calculator: Union[str, os.PathLike, ProxyCalculator],
+    num_probes: int = 500,
+    add_train_suite: bool = False,
 ):
     """
     Helper function to generate a probe suite from a dataset and proxy calculator.

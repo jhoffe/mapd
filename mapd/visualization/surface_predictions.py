@@ -1,15 +1,20 @@
-from typing import Dict, Tuple, Callable, Any, Optional
+from typing import Any, Callable, Dict, Optional, Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 from torch.utils.data import Dataset
 
 from mapd.probes.utils.idx_dataset import IDXDataset
-import matplotlib.pyplot as plt
 
 
-def display_surface_predictions(predictions: Dict[int, Tuple[str, float]], dataset: Dataset,
-                                probe_suite: str = "typical", labels: Dict[int, str] = None, ordered: bool = False,
-                                display_sample_fn: Optional[Callable[[plt.Axes, Any], None]] = None) -> plt.Figure:
+def display_surface_predictions(
+    predictions: Dict[int, Tuple[str, float]],
+    dataset: Dataset,
+    probe_suite: str = "typical",
+    labels: Dict[int, str] = None,
+    ordered: bool = False,
+    display_sample_fn: Optional[Callable[[plt.Axes, Any], None]] = None,
+) -> plt.Figure:
     """
     Helper function to generate a surface plot of the probe suite predictions.
 
@@ -26,16 +31,25 @@ def display_surface_predictions(predictions: Dict[int, Tuple[str, float]], datas
         plt.Figure: The figure containing the surface plot.
     """
 
-    all_sample_indices_for_probe = [k for k, (ps, _) in predictions.items() if ps == probe_suite]
-    all_sample_probas = [prob for _, (ps, prob) in predictions.items() if ps == probe_suite]
+    all_sample_indices_for_probe = [
+        k for k, (ps, _) in predictions.items() if ps == probe_suite
+    ]
+    all_sample_probas = [
+        prob for _, (ps, prob) in predictions.items() if ps == probe_suite
+    ]
 
     N_ROWS, N_COLUMNS = 4, 4
     N = N_ROWS * N_COLUMNS
 
     if ordered:
-        sampled_indices = [all_sample_indices_for_probe[idx] for idx in np.argsort(all_sample_probas)[-N:]]
+        sampled_indices = [
+            all_sample_indices_for_probe[idx]
+            for idx in np.argsort(all_sample_probas)[-N:]
+        ]
     else:
-        sampled_indices = np.random.choice(all_sample_indices_for_probe, N, replace=False)
+        sampled_indices = np.random.choice(
+            all_sample_indices_for_probe, N, replace=False
+        )
 
     fig, axs = plt.subplots(N_ROWS, N_COLUMNS, figsize=(20, 20))
     fig.suptitle(f"Probe Suite: {probe_suite}", fontsize=20)
