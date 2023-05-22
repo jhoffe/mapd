@@ -7,6 +7,7 @@ from lightning import LightningModule
 from typing import Any, List, Dict, Optional, Union, Tuple
 
 from sklearn.base import BaseEstimator
+from sklearn.preprocessing import LabelEncoder
 from torch import Tensor
 import pyarrow.dataset as ds
 import pyarrow as pa
@@ -15,6 +16,7 @@ import numpy as np
 from lightning.pytorch.utilities.model_helpers import is_overridden
 
 from mapd.classifiers.make_mapd_classifier import make_mapd_classifier
+from mapd.classifiers.make_predictions import make_predictions
 from mapd.probes.make_probe_suites import make_probe_suites
 from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 from mapd.probes.utils.idx_dataset import IDXDataset
@@ -232,3 +234,9 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
 
         return make_mapd_classifier(probes_path, probe_suite_dataset, clf, clf_kwargs=clf_kwargs,
                                     epoch_range=epoch_range)
+
+    def mapd_predict(self, clf: BaseEstimator, label_encoder: LabelEncoder,
+                     epoch_range: Optional[Tuple[int, int]] = None, n_jobs: int = 1):
+        probes_path = self._get_setting("probes_output_path", "mapd_probes")
+
+        return make_predictions(probes_path, clf, label_encoder, epoch_range=epoch_range, n_jobs=n_jobs)

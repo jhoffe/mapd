@@ -1,24 +1,14 @@
 import os
 from collections import defaultdict
-from typing import Union, Dict, Any, Optional, Tuple
+from typing import Union, Optional, Tuple
 
 import numpy as np
 import pyarrow as pa
 import pyarrow.dataset as ds
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder
-from sklearn.base import BaseEstimator, is_classifier
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
-from xgboost import XGBClassifier, XGBRFClassifier
+from sklearn.base import BaseEstimator
 from joblib import Parallel, delayed
 from tqdm.auto import tqdm
-
-from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 
 
 def _create_sklearn_predict_matrix(dataset_path: Union[str, os.PathLike],

@@ -159,7 +159,7 @@ probe_trainer.fit(probe_emnist_module.as_probes(), train_dataloaders=probe_train
 mapd_clf, label_encoder = probe_emnist_module.make_mapd_classifier(emnist_train_probes)
 
 # Now we can surface some examples
-probe_predictions = make_predictions("mapd_probes", mapd_clf, label_encoder, n_jobs=16)
+probe_predictions = probe_emnist_module.mapd_predict(mapd_clf, label_encoder, n_jobs=16)
 
 # Define the possible labels (for plotting)
 letters = digits + "ABCDEFGHIJKLMNOPQRSTUVWXYZabdefchnqrt"
