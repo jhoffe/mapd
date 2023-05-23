@@ -1,53 +1,13 @@
 import os
-from collections import defaultdict
 from typing import Optional, Tuple, Union
 
 import numpy as np
-import pyarrow as pa
-import pyarrow.dataset as ds
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import LabelEncoder
 from tqdm.auto import tqdm
 
-
-def _create_sklearn_predict_matrix(
-    dataset_path: Union[str, os.PathLike], epoch_range: Optional[Tuple[int, int]] = None
-):
-    dataset = ds.dataset(
-        dataset_path,
-        partitioning=ds.partitioning(
-            pa.schema([("epoch", pa.int64()), ("stage", pa.string())]),
-            flavor="filename",
-        ),
-        format="parquet",
-    )
-    sample_index_to_loss = defaultdict(list)
-
-    i = 0
-    while True:
-        if epoch_range is not None and (i < epoch_range[0] or i > epoch_range[1]):
-            continue
-        epoch_df = (
-            dataset.filter((ds.field("epoch") == i) & (ds.field("stage") == "train"))
-            .to_table()
-            .to_pandas()
-        )
-        if epoch_df.empty:
-            break
-
-        for sample_index, loss_data in (
-            epoch_df.groupby("sample_index").agg({"loss": "first"}).iterrows()
-        ):
-            loss = loss_data.values[0]
-
-            sample_index_to_loss[sample_index].append(loss)
-
-        i += 1
-
-    return np.array([losses for losses in sample_index_to_loss.values()]), list(
-        sample_index_to_loss.keys()
-    )
+from mapd.classifiers.utils.create_sklearn_matrix import create_sklearn_predict_matrix
 
 
 def make_predictions(
@@ -57,7 +17,7 @@ def make_predictions(
     epoch_range: Optional[Tuple[int, int]] = None,
     n_jobs: int = 1,
 ):
-    X, sample_indices = _create_sklearn_predict_matrix(
+    X, sample_indices = create_sklearn_predict_matrix(
         dataset_path, epoch_range=epoch_range
     )
 

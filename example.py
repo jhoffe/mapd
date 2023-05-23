@@ -115,8 +115,8 @@ mnist_train, mnist_val = random_split(mnist_full, [0.8, 0.2])
 BATCH_SIZE = 256
 NUM_WORKERS = 8
 
-NUM_PROXY_EPOCHS = 20
-NUM_PROBES_EPOCH = 100
+NUM_PROXY_EPOCHS = 2
+NUM_PROBES_EPOCH = 2
 
 # We need to wrap the datasets in IDXDataset, to uniquely identify each sample.
 idx_mnist_train = wrap_dataset(mnist_train)
