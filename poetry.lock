@@ -3895,6 +3895,18 @@ typing-extensions = "*"
 opt-einsum = ["opt-einsum (>=3.3)"]
 
 [[package]]
+name = "torchinfo"
+version = "1.8.0"
+description = "Model summary in PyTorch, based off of the original torchsummary."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "torchinfo-1.8.0-py3-none-any.whl", hash = "sha256:2e911c2918603f945c26ff21a3a838d12709223dc4ccf243407bce8b6e897b46"},
+    {file = "torchinfo-1.8.0.tar.gz", hash = "sha256:72e94b0e9a3e64dc583a8e5b7940b8938a1ac0f033f795457f27e6f4e7afa2e9"},
+]
+
+[[package]]
 name = "torchmetrics"
 version = "0.11.4"
 description = "PyTorch native Metrics"
@@ -4431,4 +4443,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<4.0.0"
-content-hash = "0b1ba978be449d72112044f896536edcad83c155ca2d8f532f5ed1f2e19946c4"
+content-hash = "0834fe0157ac145da9a8f0bcc053484721aa00cb141c01428eb3bef4cecfb7e8"

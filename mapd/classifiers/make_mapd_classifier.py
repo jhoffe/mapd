@@ -1,16 +1,18 @@
 import os
 from typing import Any, Dict, Optional, Tuple, Union
 
+from matplotlib import pyplot as plt
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelBinarizer, LabelEncoder
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier, XGBRFClassifier
+from sklearn.model_selection import train_test_split
 
 from mapd.classifiers.utils.create_sklearn_matrix import create_sklearn_train_matrix
 from mapd.probes.probe_suite_generator import ProbeSuiteDataset
@@ -36,6 +38,7 @@ def make_mapd_classifier(
     clf: Union[str, BaseEstimator] = "xgboost",
     clf_kwargs: Optional[Dict[str, Any]] = None,
     epoch_range: Optional[Tuple[int, int]] = None,
+    plot_calibration_curves: bool = False,
 ):
     """
     Creates and trains a MAPD classifier that can predict
@@ -67,8 +70,28 @@ def make_mapd_classifier(
     X, y = create_sklearn_train_matrix(
         dataset_path, probe_suite_ds, epoch_range=epoch_range
     )
+
     label_encoder = LabelEncoder()
     y = label_encoder.fit_transform(y)
 
-    clf.fit(X, y)
+    if plot_calibration_curves:
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, stratify=y)
+        clf.fit(X_train, y_train)
+
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        ax.set_title("Calibration curve")
+
+        from sklearn.calibration import CalibrationDisplay
+
+        y_probas = clf.predict_proba(X_test)
+        for i in range(y_probas.shape[1]):
+            CalibrationDisplay.from_predictions((y_test == i).astype(int), y_probas[:, i], ax=ax, name=label_encoder.classes_[i])
+
+        fig.tight_layout()
+        plt.legend()
+
+        return clf, label_encoder, fig
+    else:
+        clf.fit(X, y)
+
     return clf, label_encoder

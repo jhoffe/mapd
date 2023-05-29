@@ -259,6 +259,7 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
         clf: Union[str, BaseEstimator] = "xgboost",
         clf_kwargs: Optional[Dict[str, Any]] = None,
         epoch_range: Optional[Tuple[int, int]] = None,
+        plot_calibration_curves: bool = False,
     ):
         probes_path = self._get_setting("probes_output_path", "mapd_probes")
 
@@ -268,6 +269,7 @@ class MAPDModule(LightningModule, metaclass=ABCMeta):
             clf,
             clf_kwargs=clf_kwargs,
             epoch_range=epoch_range,
+            plot_calibration_curves=plot_calibration_curves,
         )
 
     def mapd_predict(

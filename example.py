@@ -1,3 +1,6 @@
+from collections import Counter
+
+import pandas as pd
 from torch.utils.data import DataLoader
 
 import mapd
@@ -16,27 +19,29 @@ from mapd.utils.wrap_dataset import wrap_dataset
 from mapd.visualization.surface_predictions import display_surface_predictions
 import matplotlib.pyplot as plt
 from string import digits
+from torchinfo import summary
 
 
 # Define the neural network model
 class Net(nn.Module):
     def __init__(self, num_labels: int = 10):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.conv1 = nn.Conv2d(1, 80, kernel_size=5)
+        self.max_pool1 = nn.MaxPool2d(2)
+        self.conv2 = nn.Conv2d(80, 160, kernel_size=5)
+        self.max_pool2 = nn.MaxPool2d(2)
         self.conv2_drop = nn.Dropout2d()
-        self.fc1 = nn.Linear(320, 50)
-        self.fc2 = nn.Linear(50, num_labels)
+        self.fc1 = nn.Linear(2560, 1280)
+        self.fc2 = nn.Linear(1280, num_labels)
 
     def forward(self, x):
-        x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-        x = x.view(-1, 320)
+        x = F.relu(self.max_pool1((self.conv1(x))))
+        x = F.relu(self.conv2_drop(self.max_pool2(self.conv2(x))))
+        x = x.view(-1, 2560)
         x = F.relu(self.fc1(x))
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
         return x
-
 
 # Define the MAPDModule
 class EMNISTModule(mapd.MAPDModule):
@@ -112,11 +117,12 @@ mnist_full = torchvision.datasets.EMNIST(EMNIST_ROOT, train=True, split="balance
 mnist_train, mnist_val = random_split(mnist_full, [0.8, 0.2])
 
 # Define the dataloaders
-BATCH_SIZE = 256
+BATCH_SIZE = 512
 NUM_WORKERS = 8
+model_summary = summary(Net(num_labels=47), (BATCH_SIZE, 1, 28, 28), verbose=2, col_names=["input_size", "output_size", "num_params", "kernel_size"])
 
-NUM_PROXY_EPOCHS = 2
-NUM_PROBES_EPOCH = 2
+NUM_PROXY_EPOCHS = 50
+NUM_PROBES_EPOCH = 100
 
 # We need to wrap the datasets in IDXDataset, to uniquely identify each sample.
 idx_mnist_train = wrap_dataset(mnist_train)
@@ -145,7 +151,7 @@ validation_dataloader = DataLoader(wrap_dataset(mnist_val), batch_size=BATCH_SIZ
 validation_dataloaders = make_dataloaders([validation_dataloader], emnist_train_probes, dataloader_kwargs={
     "batch_size": BATCH_SIZE,
     "num_workers": NUM_WORKERS,
-    "prefetch_factor": 2
+    "prefetch_factor": 4
 })
 
 # Now we can train the probes
@@ -156,7 +162,7 @@ probe_trainer.fit(probe_emnist_module.as_probes(), train_dataloaders=probe_train
 
 # After training, we can plot the results
 plot_tool = probe_emnist_module.visualiaztion_tool(emnist_train_probes)
-plot_tool.all_plots()
+plot_tool.all_plots(show=False, save_path="plots_train")
 
 # Now we can create the classifier
 mapd_clf, label_encoder = probe_emnist_module.make_mapd_classifier(emnist_train_probes)
@@ -168,19 +174,17 @@ probe_predictions = probe_emnist_module.mapd_predict(mapd_clf, label_encoder, n_
 letters = digits + "ABCDEFGHIJKLMNOPQRSTUVWXYZabdefchnqrt"
 labels = {i: l for i, l in enumerate(letters)}
 
-fig = display_surface_predictions(probe_predictions, mnist_train, probe_suite="typical", labels=labels, ordered=True)
-plt.show()
+fig = display_surface_predictions(probe_predictions, mnist_train,
+                                  probe_suite=["typical", "atypical", "random_outputs", "random_inputs_outputs"],
+                                  labels=labels, ordered=True)
+fig.savefig("all.png", dpi=300)
 
-fig = display_surface_predictions(probe_predictions, mnist_train, probe_suite="atypical", labels=labels, ordered=True)
-plt.show()
+# Create a pandas dataframe with the counts of each predicted probe suite
+counter = Counter([p[0] for p in probe_predictions.values()])
+df = pd.DataFrame.from_dict(counter, orient="index", columns=["count"])
+df = df.sort_values(by="count", ascending=False)
 
-fig = display_surface_predictions(probe_predictions, mnist_train, probe_suite="random_outputs", labels=labels,
-                                  ordered=True)
-plt.show()
+print(df)
 
-fig = display_surface_predictions(probe_predictions, mnist_train, probe_suite="random_inputs_outputs", labels=labels,
-                                  ordered=True)
-plt.show()
-
-fig = display_surface_predictions(probe_predictions, mnist_train, probe_suite="train", labels=labels, ordered=True)
-plt.show()
+# Convert to latex table
+df.to_latex("counts.tex", escape=False)

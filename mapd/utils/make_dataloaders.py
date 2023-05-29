@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from typing import List, Optional
 
 from torch.utils.data import DataLoader
@@ -32,9 +32,8 @@ def make_dataloaders(
     if dataloader_kwargs is not None:
         default_dataloader_options.update(dataloader_kwargs)
 
-    probe_suite_dataset = deepcopy(probe_suite_dataset)
+    probe_suite_dataset = copy(probe_suite_dataset)
     probe_suite_dataset.only_probes = True
-    probe_suite_dataset.dataset = None
 
     return [
         DataLoader(probe_suite_dataset, **default_dataloader_options)
