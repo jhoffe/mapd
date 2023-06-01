@@ -89,3 +89,13 @@ target/
 #outputs
 
 .pytest_cache/
+
+probes_data/
+/lightning_logs/
+/probes/
+/proxies/
+/data-emnist
+/mapd_probes
+/mapd_proxies
+
+*.pkl

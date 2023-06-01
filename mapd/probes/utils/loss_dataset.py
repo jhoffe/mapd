@@ -5,7 +5,7 @@ import pandas as pd
 import pyarrow.parquet as pq
 import torch
 
-from src.data.make_probe_suites import ProbeSuiteGenerator
+from mapd.data.make_probe_suites import ProbeSuiteGenerator
 
 
 class LossDataset:
