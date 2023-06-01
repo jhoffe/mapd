@@ -13,9 +13,9 @@ from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 
 class MAPDVisualizationTool:
     def __init__(
-            self,
-            mapd_loss_dataset_path: str,
-            probe_suite_dataset: ProbeSuiteDataset,
+        self,
+        mapd_loss_dataset_path: str,
+        probe_suite_dataset: ProbeSuiteDataset,
     ) -> None:
         self.data = ds.dataset(
             mapd_loss_dataset_path,
@@ -40,11 +40,11 @@ class MAPDVisualizationTool:
         self._prepare_plot_styles()
 
     def probe_accuracy_plot(
-            self,
-            show: bool = True,
-            save: Optional[bool] = None,
-            save_path: Optional[str] = None,
-            plot_config: Optional[Dict] = None,
+        self,
+        show: bool = True,
+        save: Optional[bool] = None,
+        save_path: Optional[str] = None,
+        plot_config: Optional[Dict] = None,
     ) -> None:
         """
         Plot probe accuracy for each suite over epochs.
@@ -63,7 +63,7 @@ class MAPDVisualizationTool:
         # check that save is not None if save_path is not None
         if save_path is not None:
             assert (
-                    save is True
+                save is True
             ), "Remember to set save to True if you want to save the plot!"
 
         self.val_df = self.val_data.groupby(["epoch", "suite"]).agg(
@@ -120,11 +120,11 @@ class MAPDVisualizationTool:
         plt.close()
 
     def consistently_learned_plot(
-            self,
-            show: bool = True,
-            save: Optional[bool] = None,
-            save_path: Optional[str] = None,
-            plot_config: Optional[Dict] = None,
+        self,
+        show: bool = True,
+        save: Optional[bool] = None,
+        save_path: Optional[str] = None,
+        plot_config: Optional[Dict] = None,
     ) -> None:
         """
         Plot consistently learned ratios for each suite over epochs.
@@ -143,7 +143,7 @@ class MAPDVisualizationTool:
         # check that save is not None if save_path is not None
         if save_path is not None:
             assert (
-                    save is True
+                save is True
             ), "Remember to set save to True if you want to save the plot!"
 
         self._plot_dicts()
@@ -175,7 +175,7 @@ class MAPDVisualizationTool:
 
         print("Computing consistently learned ratios...")
         for epoch in tqdm(
-                reversed(range(self._max_epoch)), desc="Epochs", total=self._max_epoch
+            reversed(range(self._max_epoch)), desc="Epochs", total=self._max_epoch
         ):
             epoch_train_group = self.train_data.groupby(["epoch"]).get_group(epoch)
             epoch_train_group = epoch_train_group[
@@ -235,11 +235,11 @@ class MAPDVisualizationTool:
         plt.close()
 
     def first_learned_plot(
-            self,
-            show: bool = True,
-            save: Optional[bool] = None,
-            save_path: Optional[str] = None,
-            plot_config: Optional[Dict] = None,
+        self,
+        show: bool = True,
+        save: Optional[bool] = None,
+        save_path: Optional[str] = None,
+        plot_config: Optional[Dict] = None,
     ) -> None:
         """
         Plot first learned ratios for each suite over epochs.
@@ -258,7 +258,7 @@ class MAPDVisualizationTool:
         # check that save is not None if save_path is not None
         if save_path is not None:
             assert (
-                    save is True
+                save is True
             ), "Remember to set save to True if you want to save the plot!"
 
         self._plot_dicts()
@@ -315,11 +315,11 @@ class MAPDVisualizationTool:
         plt.close()
 
     def loss_curve_plot(
-            self,
-            show: bool = True,
-            save: Optional[bool] = None,
-            save_path: Optional[str] = None,
-            plot_config: Optional[Dict] = None,
+        self,
+        show: bool = True,
+        save: Optional[bool] = None,
+        save_path: Optional[str] = None,
+        plot_config: Optional[Dict] = None,
     ) -> None:
         """
         Plot loss curve for each suite over epochs.
@@ -338,7 +338,7 @@ class MAPDVisualizationTool:
         # check that save is not None if save_path is not None
         if save_path is not None:
             assert (
-                    save is True
+                save is True
             ), "Remember to set save to True if you want to save the plot!"
         lcp_df = self.val_data.sort_values(by=["epoch"])
         plt.figure(figsize=(10, 5))
@@ -393,30 +393,48 @@ class MAPDVisualizationTool:
         # self.violin_loss_plot()
         if save_path is not None:
             os.makedirs(save_path, exist_ok=True)
-        loss_curve_save_path = os.path.join(save_path, "loss_curve.png") if save_path is not None else None
-        self.loss_curve_plot(show, save=save_path is not None, save_path=loss_curve_save_path)
-        probe_accuracy_save_path = os.path.join(save_path, "probe_accuracy.png") if save_path is not None else None
-        self.probe_accuracy_plot(show, save=save_path is not None,
-                                 save_path=probe_accuracy_save_path)
-        first_learned_save_path = os.path.join(save_path, "first_learned.png") if save_path is not None else None
-        self.first_learned_plot(show, save=save_path is not None,
-                                save_path=first_learned_save_path)
-        consistently_learned_save_path = os.path.join(save_path,
-                                                      "consistently_learned.png") if save_path is not None else None
-        self.consistently_learned_plot(show, save=save_path is not None,
-                                       save_path=consistently_learned_save_path)
+        loss_curve_save_path = (
+            os.path.join(save_path, "loss_curve.png") if save_path is not None else None
+        )
+        self.loss_curve_plot(
+            show, save=save_path is not None, save_path=loss_curve_save_path
+        )
+        probe_accuracy_save_path = (
+            os.path.join(save_path, "probe_accuracy.png")
+            if save_path is not None
+            else None
+        )
+        self.probe_accuracy_plot(
+            show, save=save_path is not None, save_path=probe_accuracy_save_path
+        )
+        first_learned_save_path = (
+            os.path.join(save_path, "first_learned.png")
+            if save_path is not None
+            else None
+        )
+        self.first_learned_plot(
+            show, save=save_path is not None, save_path=first_learned_save_path
+        )
+        consistently_learned_save_path = (
+            os.path.join(save_path, "consistently_learned.png")
+            if save_path is not None
+            else None
+        )
+        self.consistently_learned_plot(
+            show, save=save_path is not None, save_path=consistently_learned_save_path
+        )
 
     def violin_loss_plot(
-            self,
-            show: bool = True,
-            save: Optional[bool] = None,
-            save_path: Optional[str] = None,
-            plot_config: Optional[Dict] = None,
+        self,
+        show: bool = True,
+        save: Optional[bool] = None,
+        save_path: Optional[str] = None,
+        plot_config: Optional[Dict] = None,
     ) -> None:
         # check that save is not None if save_path is not None
         if save_path is not None:
             assert (
-                    save is True
+                save is True
             ), "Remember to set save to True if you want to save the plot!"
         pass
 

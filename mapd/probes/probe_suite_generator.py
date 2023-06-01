@@ -1,10 +1,8 @@
-import copy
-import random
-from typing import Any, Dict, List, Optional, Tuple, Union, Sequence, Set
+from typing import Any, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset, Subset
+from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
 from mapd.proxies.proxy_calculator import ProxyCalculator
@@ -28,14 +26,14 @@ def random_inputs_outputs(x, y, num_labels):
 
 class ProbeSuiteDataset(Dataset):
     def __init__(
-            self,
-            dataset: Dataset,
-            label_count: int,
-            proxy_calculator: ProxyCalculator,
-            num_probes: int = 500,
-            corruption_module: Optional[Union[torch.nn.Module, transforms.Compose]] = None,
-            only_probes: bool = False,
-            add_train_suite: bool = False,
+        self,
+        dataset: Dataset,
+        label_count: int,
+        proxy_calculator: ProxyCalculator,
+        num_probes: int = 500,
+        corruption_module: Optional[Union[torch.nn.Module, transforms.Compose]] = None,
+        only_probes: bool = False,
+        add_train_suite: bool = False,
     ):
         self.dataset = dataset
         self.dataset_len = len(self.dataset)
@@ -73,17 +71,16 @@ class ProbeSuiteDataset(Dataset):
 
         assert len(np.intersect1d(self.remaining_indices, self.used_indices)) == 0
         assert (
-                len(np.unique(list(self.remaining_indices) + list(self.used_indices)))
-                == self.dataset_len
+            len(np.unique(list(self.remaining_indices) + list(self.used_indices)))
+            == self.dataset_len
         )
         assert (
-                len(self.remaining_indices) + len(self.used_indices)
-                == self.dataset_len
-        ), f"{len(self.remaining_indices)} + {len(self.used_indices)} != {self.dataset_len}"
+            len(self.remaining_indices) + len(self.used_indices) == self.dataset_len
+        ), f"{len(self.remaining_indices)}+{len(self.used_indices)}!={self.dataset_len}"
         assert self.dataset is not None
 
     def add_suite(
-            self, name: str, suite_indices: Sequence[int], transform_func: callable
+        self, name: str, suite_indices: Sequence[int], transform_func: callable
     ) -> "ProbeSuiteDataset":
         for idx in suite_indices:
             self.index_to_suite[idx] = name
@@ -119,8 +116,8 @@ class ProbeSuiteDataset(Dataset):
         return self.corruption_module(x), y
 
     def get_subset(
-            self,
-            indices: Optional[list[int]] = None,
+        self,
+        indices: Optional[list[int]] = None,
     ) -> Sequence[int]:
         if indices is None:
             subset_indices = np.random.choice(

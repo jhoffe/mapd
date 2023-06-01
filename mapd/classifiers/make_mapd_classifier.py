@@ -5,18 +5,18 @@ from matplotlib import pyplot as plt
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import LabelBinarizer, LabelEncoder
+from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier, XGBRFClassifier
-from sklearn.model_selection import train_test_split
 
-from mapd.classifiers.utils.create_sklearn_matrix import create_sklearn_train_matrix
+from mapd.classifiers.utils.create_sklearn_matrix import \
+    create_sklearn_train_matrix
 from mapd.probes.probe_suite_generator import ProbeSuiteDataset
-
 
 CLASSIFIERS = {
     "knn": lambda: KNeighborsClassifier(20),
@@ -75,7 +75,9 @@ def make_mapd_classifier(
     y = label_encoder.fit_transform(y)
 
     if plot_calibration_curves:
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, stratify=y)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.5, stratify=y
+        )
         clf.fit(X_train, y_train)
 
         fig, ax = plt.subplots(1, 1, figsize=(10, 10))
@@ -85,7 +87,12 @@ def make_mapd_classifier(
 
         y_probas = clf.predict_proba(X_test)
         for i in range(y_probas.shape[1]):
-            CalibrationDisplay.from_predictions((y_test == i).astype(int), y_probas[:, i], ax=ax, name=label_encoder.classes_[i])
+            CalibrationDisplay.from_predictions(
+                (y_test == i).astype(int),
+                y_probas[:, i],
+                ax=ax,
+                name=label_encoder.classes_[i],
+            )
 
         fig.tight_layout()
         plt.legend()

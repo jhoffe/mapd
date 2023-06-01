@@ -1,17 +1,18 @@
 import os
 from collections import defaultdict
-from typing import Union, Optional, Tuple
+from typing import Optional, Tuple, Union
 
-from mapd.probes.probe_suite_generator import ProbeSuiteDataset
 import numpy as np
 import pyarrow as pa
 import pyarrow.dataset as ds
 
+from mapd.probes.probe_suite_generator import ProbeSuiteDataset
+
 
 def create_sklearn_train_matrix(
-        dataset_path: Union[str, os.PathLike],
-        probe_suite_ds: ProbeSuiteDataset,
-        epoch_range: Optional[Tuple[int, int]] = None,
+    dataset_path: Union[str, os.PathLike],
+    probe_suite_ds: ProbeSuiteDataset,
+    epoch_range: Optional[Tuple[int, int]] = None,
 ):
     """
     Create a matrix of losses for each sample in the probes-dataset.
@@ -48,7 +49,7 @@ def create_sklearn_train_matrix(
             break
 
         for sample_index, loss_data in (
-                epoch_df.groupby("sample_index").agg({"loss": "first"}).iterrows()
+            epoch_df.groupby("sample_index").agg({"loss": "first"}).iterrows()
         ):
             loss = loss_data.values[0]
 
@@ -67,7 +68,7 @@ def create_sklearn_train_matrix(
 
 
 def create_sklearn_predict_matrix(
-        dataset_path: Union[str, os.PathLike], epoch_range: Optional[Tuple[int, int]] = None
+    dataset_path: Union[str, os.PathLike], epoch_range: Optional[Tuple[int, int]] = None
 ):
     """
     Create a matrix of losses for each sample in the training-dataset.
@@ -102,7 +103,7 @@ def create_sklearn_predict_matrix(
             break
 
         for sample_index, loss_data in (
-                epoch_df.groupby("sample_index").agg({"loss": "first"}).iterrows()
+            epoch_df.groupby("sample_index").agg({"loss": "first"}).iterrows()
         ):
             loss = loss_data.values[0]
 

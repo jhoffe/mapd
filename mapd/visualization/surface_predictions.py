@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional, Tuple, Union, Sequence
+from typing import Any, Callable, Dict, Optional, Sequence, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -40,17 +40,12 @@ def display_surface_predictions(
 
         # Plot each probe suite in a column
         for i, ps in enumerate(probe_suite):
-            sampled_indices = [
-                k for k, (p, _) in predictions.items() if p == ps
-            ]
-            sampled_probas = [
-                prob for _, (p, prob) in predictions.items() if p == ps
-            ]
+            sampled_indices = [k for k, (p, _) in predictions.items() if p == ps]
+            sampled_probas = [prob for _, (p, prob) in predictions.items() if p == ps]
 
             if ordered:
                 sampled_indices = [
-                    sampled_indices[idx]
-                    for idx in np.argsort(sampled_probas)[-N_ROWS:]
+                    sampled_indices[idx] for idx in np.argsort(sampled_probas)[-N_ROWS:]
                 ]
             else:
                 sampled_indices = np.random.choice(
@@ -69,13 +64,15 @@ def display_surface_predictions(
                 label_str = labels[label] if labels is not None else str(label)
 
                 if j == 0:
-                    axs[j, i].set_title(f"{ps} \n Label: {label_str} ({idx})")
+                    axs[j, i].set_title(
+                        f"{ps} \n Label: {label_str} ({idx})", fontsize=32
+                    )
                 else:
-                    axs[j, i].set_title(f"Label: {label_str} ({idx})")
+                    axs[j, i].set_title(f"Label: {label_str} ({idx})", fontsize=32)
                 axs[j, i].imshow(img.squeeze().T, cmap="gray")
 
         # Add probe suite name to each column
-        #for ax, ps in zip(axs[0], probe_suite):
+        # for ax, ps in zip(axs[0], probe_suite):
         #    ax.set_title(f"Probe Suite: {ps}", fontsize=20)
 
         fig.tight_layout(pad=3.0)

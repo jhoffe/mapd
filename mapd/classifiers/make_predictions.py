@@ -7,7 +7,8 @@ from sklearn.base import BaseEstimator
 from sklearn.preprocessing import LabelEncoder
 from tqdm.auto import tqdm
 
-from mapd.classifiers.utils.create_sklearn_matrix import create_sklearn_predict_matrix
+from mapd.classifiers.utils.create_sklearn_matrix import \
+    create_sklearn_predict_matrix
 
 
 def make_predictions(

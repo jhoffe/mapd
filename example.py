@@ -1,25 +1,19 @@
-from collections import Counter
+from string import digits
 
-import pandas as pd
-from torch.utils.data import DataLoader
-
-import mapd
-import torchvision
-from torchvision import transforms
-
-from mapd.utils.make_dataloaders import make_dataloaders
-from torch import nn
 import lightning as L
+import torch
+import torchvision
+from torch import nn
 from torch.nn import functional as F
 from torch.optim import SGD
-import torch
-from torch.utils.data import random_split
-from mapd.utils.wrap_dataset import wrap_dataset
-
-from mapd.visualization.surface_predictions import display_surface_predictions
-import matplotlib.pyplot as plt
-from string import digits
+from torch.utils.data import DataLoader, random_split
 from torchinfo import summary
+from torchvision import transforms
+
+import mapd
+from mapd.utils.make_dataloaders import make_dataloaders
+from mapd.utils.wrap_dataset import wrap_dataset
+from mapd.visualization.surface_predictions import display_surface_predictions
 
 
 # Define the neural network model
@@ -43,15 +37,16 @@ class Net(nn.Module):
         x = self.fc2(x)
         return x
 
+
 # Define the MAPDModule
 class EMNISTModule(mapd.MAPDModule):
     def __init__(
-            self,
-            max_epochs: int = 10,
-            lr: float = 0.05,
-            momentum: float = 0.9,
-            weight_decay: float = 0.0005,
-            num_labels: int = 47
+        self,
+        max_epochs: int = 10,
+        lr: float = 0.05,
+        momentum: float = 0.9,
+        weight_decay: float = 0.0005,
+        num_labels: int = 47,
     ):
         super().__init__()
         self.model = Net(num_labels=num_labels)
@@ -66,7 +61,7 @@ class EMNISTModule(mapd.MAPDModule):
     def mapd_settings(self):
         return {
             "proxies_output_path": "mapd_proxies",
-            "probes_output_path": "mapd_probes"
+            "probes_output_path": "mapd_probes",
         }
 
     def forward(self, x):
@@ -97,15 +92,14 @@ class EMNISTModule(mapd.MAPDModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = SGD(
-            self.parameters(),
-            lr=self.lr
-        )
+        optimizer = SGD(self.parameters(), lr=self.lr)
 
         return {"optimizer": optimizer}
 
 
-torch.set_float32_matmul_precision('high')
+L.seed_everything(42)
+
+torch.set_float32_matmul_precision("high")
 
 # Now handling the datasets
 LABEL_COUNT = 47
@@ -113,13 +107,20 @@ EMNIST_ROOT = "data"
 torchvision.datasets.EMNIST(root=EMNIST_ROOT, split="letters", download=True)
 
 emnist_transforms = transforms.Compose([transforms.ToTensor()])
-mnist_full = torchvision.datasets.EMNIST(EMNIST_ROOT, train=True, split="balanced", transform=emnist_transforms)
+mnist_full = torchvision.datasets.EMNIST(
+    EMNIST_ROOT, train=True, split="balanced", transform=emnist_transforms
+)
 mnist_train, mnist_val = random_split(mnist_full, [0.8, 0.2])
 
 # Define the dataloaders
 BATCH_SIZE = 512
-NUM_WORKERS = 8
-model_summary = summary(Net(num_labels=47), (BATCH_SIZE, 1, 28, 28), verbose=2, col_names=["input_size", "output_size", "num_params", "kernel_size"])
+NUM_WORKERS = 16
+model_summary = summary(
+    Net(num_labels=47),
+    (BATCH_SIZE, 1, 28, 28),
+    verbose=2,
+    col_names=["input_size", "output_size", "num_params", "kernel_size"],
+)
 
 NUM_PROXY_EPOCHS = 50
 NUM_PROBES_EPOCH = 100
@@ -127,8 +128,13 @@ NUM_PROBES_EPOCH = 100
 # We need to wrap the datasets in IDXDataset, to uniquely identify each sample.
 idx_mnist_train = wrap_dataset(mnist_train)
 
-proxy_train_dataloader = DataLoader(idx_mnist_train, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True,
-                                    pin_memory=True)
+proxy_train_dataloader = DataLoader(
+    idx_mnist_train,
+    batch_size=BATCH_SIZE,
+    num_workers=NUM_WORKERS,
+    shuffle=True,
+    pin_memory=True,
+)
 
 # Setup for training
 proxy_trainer = L.Trainer(max_epochs=NUM_PROXY_EPOCHS, accelerator="gpu")
@@ -136,33 +142,50 @@ proxy_emnist_module = EMNISTModule()
 proxy_trainer.fit(proxy_emnist_module.as_proxies(), proxy_train_dataloader)
 
 # We have now created the proxies needed for the probes
-emnist_train_probes = proxy_emnist_module.make_probe_suites(idx_mnist_train, num_labels=LABEL_COUNT,
-                                                            add_train_suite=True)
+emnist_train_probes = proxy_emnist_module.make_probe_suites(
+    idx_mnist_train, num_labels=LABEL_COUNT, add_train_suite=True
+)
 
 # Now we can create the dataloaders for the probes
-probe_train_dataloader = DataLoader(emnist_train_probes, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True,
-                                    pin_memory=True)
+probe_train_dataloader = DataLoader(
+    emnist_train_probes,
+    batch_size=BATCH_SIZE,
+    num_workers=NUM_WORKERS,
+    shuffle=True,
+    pin_memory=True,
+)
 
 # Now the validation dataloaders
-validation_dataloader = DataLoader(wrap_dataset(mnist_val), batch_size=BATCH_SIZE, num_workers=NUM_WORKERS,
-                                   shuffle=False,
-                                   pin_memory=True)
+validation_dataloader = DataLoader(
+    wrap_dataset(mnist_val),
+    batch_size=BATCH_SIZE,
+    num_workers=NUM_WORKERS,
+    shuffle=False,
+    pin_memory=True,
+)
 
-validation_dataloaders = make_dataloaders([validation_dataloader], emnist_train_probes, dataloader_kwargs={
-    "batch_size": BATCH_SIZE,
-    "num_workers": NUM_WORKERS,
-    "prefetch_factor": 4
-})
+validation_dataloaders = make_dataloaders(
+    [validation_dataloader],
+    emnist_train_probes,
+    dataloader_kwargs={
+        "batch_size": BATCH_SIZE,
+        "num_workers": NUM_WORKERS,
+        "prefetch_factor": 4,
+    },
+)
 
 # Now we can train the probes
 probe_trainer = L.Trainer(max_epochs=NUM_PROBES_EPOCH, accelerator="gpu")
 probe_emnist_module = EMNISTModule()
-probe_trainer.fit(probe_emnist_module.as_probes(), train_dataloaders=probe_train_dataloader,
-                  val_dataloaders=validation_dataloaders)
+probe_trainer.fit(
+    probe_emnist_module.as_probes(),
+    train_dataloaders=probe_train_dataloader,
+    val_dataloaders=validation_dataloaders,
+)
 
 # After training, we can plot the results
 plot_tool = probe_emnist_module.visualiaztion_tool(emnist_train_probes)
-plot_tool.all_plots(show=False, save_path="plots_train")
+plot_tool.all_plots(show=False, save_path="plots")
 
 # Now we can create the classifier
 mapd_clf, label_encoder = probe_emnist_module.make_mapd_classifier(emnist_train_probes)
@@ -174,17 +197,11 @@ probe_predictions = probe_emnist_module.mapd_predict(mapd_clf, label_encoder, n_
 letters = digits + "ABCDEFGHIJKLMNOPQRSTUVWXYZabdefchnqrt"
 labels = {i: l for i, l in enumerate(letters)}
 
-fig = display_surface_predictions(probe_predictions, mnist_train,
-                                  probe_suite=["typical", "atypical", "random_outputs", "random_inputs_outputs"],
-                                  labels=labels, ordered=True)
+fig = display_surface_predictions(
+    probe_predictions,
+    mnist_train,
+    probe_suite=["typical", "atypical", "random_outputs", "random_inputs_outputs"],
+    labels=labels,
+    ordered=True,
+)
 fig.savefig("all.png", dpi=300)
-
-# Create a pandas dataframe with the counts of each predicted probe suite
-counter = Counter([p[0] for p in probe_predictions.values()])
-df = pd.DataFrame.from_dict(counter, orient="index", columns=["count"])
-df = df.sort_values(by="count", ascending=False)
-
-print(df)
-
-# Convert to latex table
-df.to_latex("counts.tex", escape=False)
