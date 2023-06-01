@@ -28,20 +28,6 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         poetry build
-    - name: Publish to TestPyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
-        skip_existing: true
-
-    - name: Test install from TestPyPI
-      run: |
-          pip install \
-          --index-url https://test.pypi.org/simple/ \
-          --extra-index-url https://pypi.org/simple \
-          dtuhpc
 
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
